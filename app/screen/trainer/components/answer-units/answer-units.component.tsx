@@ -3,11 +3,14 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
-  FlatList,
+  Animated,
+  Dimensions,
 } from "react-native";
 import { SentenceInterface, TenseInterface } from "../../../../types";
 import { default as rndRangeNum } from "../../../../utils/randomNumberInRange";
+import { useState, useEffect } from "react";
+
+const { width } = Dimensions.get('window');
 
 interface AnswerUnitsComponentProps {
   tense: TenseInterface | undefined;
@@ -20,99 +23,196 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
   sentence,
   setUserAnswer,
 }): JSX.Element => {
-  //This function return array of possible piece of answer
+  const [usedWords, setUsedWords] = useState<string[]>([]);
+  const [scaleAnims] = useState<Animated.Value[]>([]);
+
+  // Инициализация анимаций
+  useEffect(() => {
+    const words = getPossibleAnswerUnitsArray(sentence, tense);
+    words.forEach((_, index) => {
+      scaleAnims[index] = new Animated.Value(0);
+    });
+  }, [sentence]);
+
   const getPossibleAnswerUnitsArray = (
     sentence: SentenceInterface,
     tense: TenseInterface | undefined
   ): Array<string> => {
-    let result = [""];
+    if (!tense) return [""];
 
-    if (tense != undefined) {
-      result = [
-        ...new Set(
-          sentence.ru
-            .split(" ")
-            .concat(
-              Object.values(
-                tense.pronounts[1][rndRangeNum(0, tense.pronounts[1].length)]
-              )
-            )
-            .concat(
-              Object.values(
-                tense.auxiliaries[0][
-                  rndRangeNum(0, tense.auxiliaries[0].length)
-                ]
-              )
-            )
-            .concat(
-              Object.values(
-                tense.verbs[0][rndRangeNum(0, tense.verbs[0].length)]
-              )
-            )
-            .filter((el) => el !== "")
-            .sort()
-        ),
-      ];
-    }
+    const sentenceWords = sentence.ru.split(" ").filter(word => word.trim() !== "");
+    
+    // Получаем дополнительные слова из всех возможных вариантов
+    const allPronouns = Object.values(tense.pronounts).flat().flatMap(arr => 
+      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
+    );
+    
+    const allAuxiliaries = Object.values(tense.auxiliaries).flat().flatMap(arr =>
+      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
+    );
+    
+    const allVerbs = Object.values(tense.verbs).flat().flatMap(arr =>
+      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
+    );
 
-    return result;
+    const allWords = [...new Set([
+      ...sentenceWords,
+      ...allPronouns,
+      ...allAuxiliaries,
+      ...allVerbs,
+    ].filter(word => word && word.trim() !== ""))];
+
+    return allWords.sort(() => Math.random() - 0.5); // Перемешиваем слова
   };
+
+  const handleWordPress = (word: string, index: number) => {
+    // Анимация нажатия
+    Animated.sequence([
+      Animated.timing(scaleAnims[index], {
+        toValue: 0.8,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnims[index], {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setUserAnswer((prev) => {
+      const newAnswer = prev ? `${prev} ${word}` : word;
+      return newAnswer;
+    });
+
+    setUsedWords(prev => [...prev, word]);
+  };
+
+  const words = getPossibleAnswerUnitsArray(sentence, tense);
 
   return (
     <View style={styles.container}>
-      {getPossibleAnswerUnitsArray(sentence, tense).map((element, idx) => (
-        <TouchableOpacity
-          key={idx}
-          style={styles.answerUnit}
-          onPress={() =>
-            setUserAnswer((prev) => {
-              return prev + " " + element;
-            })
+      <Text style={styles.title}>Выберите слова:</Text>
+      
+      <View style={styles.wordsGrid}>
+        {words.map((word, index) => {
+          // Инициализируем анимацию если нужно
+          if (!scaleAnims[index]) {
+            scaleAnims[index] = new Animated.Value(1);
           }
+
+          const isUsed = usedWords.includes(word);
+          
+          return (
+            <Animated.View
+              key={`${word}-${index}`}
+              style={[
+                styles.wordWrapper,
+                { transform: [{ scale: scaleAnims[index] }] }
+              ]}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.answerUnit,
+                  isUsed && styles.usedWord,
+                ]}
+                onPress={() => handleWordPress(word, index)}
+                disabled={isUsed}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.text,
+                  isUsed && styles.usedText
+                ]}>
+                  {word}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          );
+        })}
+      </View>
+
+      {usedWords.length > 0 && (
+        <TouchableOpacity 
+          style={styles.clearButton}
+          onPress={() => setUsedWords([])}
         >
-          <Text style={styles.text}>{element}</Text>
+          <Text style={styles.clearButtonText}>Сбросить выбор</Text>
         </TouchableOpacity>
-      ))}
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    display: "flex",
-    backgroundColor: "white",
-    padding: 10,
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    borderWidth: 1,
-    borderColor: "silver",
-    margin: 10,
-    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2c3e50',
+    marginBottom: 12,
+  },
+  wordsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    gap: 8,
+  },
+  wordWrapper: {
+    // Обертка для анимации
   },
   answerUnit: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    margin: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    borderColor: "#F2F2F2",
-    borderWidth: 1,
-    backgroundColor: "white",
-    borderRadius: 5,
-    shadowColor: "#000",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#667eea',
+    borderRadius: 12,
+    shadowColor: '#000',
     shadowOffset: {
-      width: 1,
+      width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 2,
-    elevation: 2,
-    marginVertical: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  usedWord: {
+    backgroundColor: '#E9ECEF',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   text: {
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  usedText: {
+    color: '#6C757D',
+    textDecorationLine: 'line-through',
+  },
+  clearButton: {
+    marginTop: 12,
+    padding: 8,
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    fontSize: 14,
+    color: '#667eea',
+    fontWeight: '500',
   },
 });
 
