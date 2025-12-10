@@ -20,6 +20,14 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
   const lineScale = React.useRef(new Animated.Value(0)).current;
   const lineOpacity = React.useRef(new Animated.Value(0)).current;
   
+  // Анимации для волн
+  const waveScale1 = React.useRef(new Animated.Value(1)).current;
+  const waveOpacity1 = React.useRef(new Animated.Value(1)).current;
+  const waveScale2 = React.useRef(new Animated.Value(1)).current;
+  const waveOpacity2 = React.useRef(new Animated.Value(1)).current;
+  const waveScale3 = React.useRef(new Animated.Value(1)).current;
+  const waveOpacity3 = React.useRef(new Animated.Value(1)).current;
+  
   // Партиклы-точки (используем translate вместо left/top)
   const particles = React.useRef(
     Array.from({ length: 12 }, () => ({
@@ -91,7 +99,7 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
       ])
     ).start();
 
-    // Анимация свечения (как в ProfileScreen)
+    // Анимация свечения
     Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, {
@@ -102,6 +110,99 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
         Animated.timing(glowAnim, {
           toValue: 0.3,
           duration: 2000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Анимация волн
+    Animated.loop(
+      Animated.sequence([
+        // Первая волна
+        Animated.parallel([
+          Animated.timing(waveScale1, {
+            toValue: 1.8,
+            duration: 3000,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(waveOpacity1, {
+            toValue: 0,
+            duration: 3000,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(waveScale1, {
+          toValue: 1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveOpacity1, {
+          toValue: 1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.delay(1000),
+        // Вторая волна
+        Animated.parallel([
+          Animated.timing(waveScale2, {
+            toValue: 1.8,
+            duration: 3000,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(waveOpacity2, {
+            toValue: 0,
+            duration: 3000,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(waveScale2, {
+          toValue: 1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveOpacity2, {
+          toValue: 1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.delay(2000),
+        // Третья волна
+        Animated.parallel([
+          Animated.timing(waveScale3, {
+            toValue: 1.8,
+            duration: 3000,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(waveOpacity3, {
+            toValue: 0,
+            duration: 3000,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(waveScale3, {
+          toValue: 1,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(waveOpacity3, {
+          toValue: 1,
+          duration: 0,
           useNativeDriver: true,
         }),
       ])
@@ -150,31 +251,30 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
   }, [theme]);
 
   const handleGetStarted = () => {
-    // Анимация нажатия кнопки
-    Animated.sequence([
-      Animated.parallel([
-        Animated.spring(buttonAnim, {
-          toValue: 0.9,
-          tension: 300,
-          friction: 3,
-          useNativeDriver: true,
-        }),
-        Animated.timing(lineScale, {
-          toValue: 1.5,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(lineOpacity, {
-          toValue: 1,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 1.5,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]),
+    // Анимация нажатия кнопки с волновым эффектом
+    Animated.parallel([
+      Animated.spring(buttonAnim, {
+        toValue: 0.9,
+        tension: 300,
+        friction: 3,
+        useNativeDriver: true,
+      }),
+      Animated.timing(lineScale, {
+        toValue: 1.5,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(lineOpacity, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(glowAnim, {
+        toValue: 1.5,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
       Animated.parallel([
         Animated.spring(buttonAnim, {
           toValue: 1,
@@ -197,13 +297,13 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
           duration: 300,
           useNativeDriver: true,
         }),
-      ]),
-    ]).start(() => {
-      navigation.navigate('Список времен');
+      ]).start(() => {
+        navigation.navigate('Список времен');
+      });
     });
   };
 
-  // Функции для получения цветов как в ProfileScreen
+  // Функции для получения цветов
   const getBackgroundGradient = () => {
     if (theme === 'dark') {
       return ['#0A0020', '#1A0030', '#0F0028'];
@@ -270,7 +370,7 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
     outputRange: [0.3, 0.6]
   });
 
-  // Градиент для кнопки - как в ProfileScreen
+  // Градиент для кнопки
   const getButtonGradient = () => {
     return [colors.primary, colors.primaryLight || colors.primary];
   };
@@ -278,14 +378,14 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       
-      {/* Анимированный фон как на ProfileScreen */}
+      {/* Анимированный фон */}
       <View style={styles.background} pointerEvents="none">
         <LinearGradient
           colors={getBackgroundGradient()}
           style={styles.backgroundGradient}
         />
         
-        {/* Плавающие орбы как на ProfileScreen */}
+        {/* Плавающие орбы */}
         <Animated.View 
           style={[
             styles.floatingOrb1,
@@ -314,7 +414,7 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
           ]} 
         />
         
-        {/* Анимированные частицы как на ProfileScreen */}
+        {/* Анимированные частицы */}
         <View style={styles.particlesContainer}>
           {particles.map((particle, index) => (
             <Animated.View
@@ -396,7 +496,7 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
             </Text>
           </Animated.View>
 
-          {/* Статистика с теми же цветами что и в ProfileScreen */}
+          {/* Статистика */}
           <Animated.View 
             style={[
               styles.statsContainer,
@@ -425,39 +525,76 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
 
         </View>
 
-        {/* Нижняя часть */}
+        {/* Нижняя часть с круглой кнопкой и волнами */}
         <View style={styles.bottomSection}>
           
-          {/* Кнопка с градиентом как в ProfileScreen */}
-          <Animated.View 
-            style={[
-              styles.buttonContainer,
-              { 
-                opacity: buttonOpacity,
-                transform: [{ scale: buttonScale }]
-              }
-            ]}
-          >
-            <TouchableOpacity 
-              style={[styles.button]}
-              onPress={handleGetStarted}
-              activeOpacity={0.9}
+          {/* Контейнер для волн и кнопки */}
+          <View style={styles.waveContainer}>
+            {/* Волны */}
+            <Animated.View 
+              style={[
+                styles.wave,
+                {
+                  transform: [{ scale: waveScale1 }],
+                  opacity: waveOpacity1,
+                  borderColor: colors.primary + '30',
+                }
+              ]}
+            />
+            <Animated.View 
+              style={[
+                styles.wave,
+                {
+                  transform: [{ scale: waveScale2 }],
+                  opacity: waveOpacity2,
+                  borderColor: colors.primary + '20',
+                }
+              ]}
+            />
+            <Animated.View 
+              style={[
+                styles.wave,
+                {
+                  transform: [{ scale: waveScale3 }],
+                  opacity: waveOpacity3,
+                  borderColor: colors.primary + '10',
+                }
+              ]}
+            />
+            
+            {/* Круглая кнопка */}
+            <Animated.View 
+              style={[
+                styles.roundButtonContainer,
+                { 
+                  opacity: buttonOpacity,
+                  transform: [{ scale: buttonScale }]
+                }
+              ]}
             >
-              <LinearGradient
-                colors={getButtonGradient()}
-                style={styles.buttonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+              <TouchableOpacity 
+                style={styles.roundButton}
+                onPress={handleGetStarted}
+                activeOpacity={0.85}
               >
-                <Ionicons name="play" size={24} color="#FFFFFF" />
-                <Text style={styles.buttonText}>
-                  НАЧАТЬ ТРЕНИРОВКУ
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
+                <LinearGradient
+                  colors={getButtonGradient()}
+                  style={styles.roundButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={styles.buttonContent}>
+                    <Ionicons name="play" size={32} color="#FFFFFF" />
+                    <Text style={styles.roundButtonText}>
+                      НАЧАТЬ
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
 
-          {/* Футер с версией как в ProfileScreen */}
+          {/* Футер */}
           <Animated.View 
             style={[
               styles.footer,
@@ -467,7 +604,7 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
             ]}
           >
             <Text style={[styles.footerText, { color: colors.textTertiary }]}>
-              Присоединяйтесь более чем к 1000 учеников
+              Присоединяйтесь к сообществу учеников
             </Text>
           </Animated.View>
 
@@ -480,7 +617,6 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
 };
 
 const styles = StyleSheet.create({
-  // Фон как в ProfileScreen
   background: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 1,
@@ -604,40 +740,60 @@ const styles = StyleSheet.create({
   bottomSection: {
     alignItems: 'center',
   },
-  buttonContainer: {
-    marginBottom: 40,
-    width: '100%',
-  },
-  button: {
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
-    elevation: 20,
-  },
-  buttonGradient: {
-    flexDirection: 'row',
+  waveContainer: {
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 22,
-    paddingHorizontal: 32,
-    gap: 12,
+    height: 200,
+    width: 200,
+    marginBottom: 30,
   },
-  buttonText: {
+  wave: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 1.5,
+  },
+  roundButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  roundButton: {
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  roundButtonGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  roundButtonText: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.8,
+    marginTop: 8,
   },
   footer: {
     alignItems: 'center',
-    paddingBottom: 20,
   },
   footerText: {
     fontSize: 14,
     fontWeight: '500',
+    textAlign: 'center',
   },
 });
 
