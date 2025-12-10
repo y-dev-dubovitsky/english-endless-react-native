@@ -9,6 +9,7 @@ import {
 import { SentenceInterface, TenseInterface } from "../../../../types";
 import { default as rndRangeNum } from "../../../../utils/randomNumberInRange";
 import { useState, useEffect } from "react";
+import { useTheme } from '../../../../contexts/ThemeContext'; // Добавляем импорт
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,8 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
   sentence,
   setUserAnswer,
 }): JSX.Element => {
+  const { colors, theme } = useTheme(); // Получаем тему
+  
   const [usedWords, setUsedWords] = useState<string[]>([]);
   const [scaleAnims] = useState<Animated.Value[]>([]);
 
@@ -30,7 +33,7 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
   useEffect(() => {
     const words = getPossibleAnswerUnitsArray(sentence, tense);
     words.forEach((_, index) => {
-      scaleAnims[index] = new Animated.Value(0);
+      scaleAnims[index] = new Animated.Value(1); // Изменяем с 0 на 1 для правильной анимации
     });
   }, [sentence]);
 
@@ -42,7 +45,6 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
 
     const sentenceWords = sentence.ru.split(" ").filter(word => word.trim() !== "");
     
-    // Получаем дополнительные слова из всех возможных вариантов
     const allPronouns = Object.values(tense.pronounts).flat().flatMap(arr => 
       Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
     );
@@ -62,14 +64,14 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
       ...allVerbs,
     ].filter(word => word && word.trim() !== ""))];
 
-    return allWords.sort(() => Math.random() - 0.5); // Перемешиваем слова
+    return allWords.sort(() => Math.random() - 0.5);
   };
 
   const handleWordPress = (word: string, index: number) => {
     // Анимация нажатия
     Animated.sequence([
       Animated.timing(scaleAnims[index], {
-        toValue: 0.8,
+        toValue: 0.9,
         duration: 100,
         useNativeDriver: true,
       }),
@@ -88,15 +90,58 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
     setUsedWords(prev => [...prev, word]);
   };
 
+  const getShadowStyle = () => {
+    if (theme === 'light') {
+      return {
+        shadowColor: 'rgba(0, 0, 0, 0.1)',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
+      };
+    } else {
+      return {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 4,
+      };
+    }
+  };
+
+  const getContainerShadowStyle = () => {
+    if (theme === 'light') {
+      return {
+        shadowColor: 'rgba(0, 0, 0, 0.08)',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 6,
+      };
+    } else {
+      return {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+        elevation: 10,
+      };
+    }
+  };
+
   const words = getPossibleAnswerUnitsArray(sentence, tense);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Выберите слова:</Text>
+    <View style={[
+      styles.container,
+      { backgroundColor: colors.backgroundSecondary },
+      getContainerShadowStyle()
+    ]}>
+      <Text style={[styles.title, { color: colors.text }]}>Выберите слова:</Text>
       
       <View style={styles.wordsGrid}>
         {words.map((word, index) => {
-          // Инициализируем анимацию если нужно
           if (!scaleAnims[index]) {
             scaleAnims[index] = new Animated.Value(1);
           }
@@ -114,7 +159,11 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
               <TouchableOpacity
                 style={[
                   styles.answerUnit,
-                  isUsed && styles.usedWord,
+                  getShadowStyle(),
+                  { backgroundColor: colors.primary },
+                  isUsed && { 
+                    backgroundColor: theme === 'light' ? '#E9ECEF' : 'rgba(255, 255, 255, 0.1)'
+                  },
                 ]}
                 onPress={() => handleWordPress(word, index)}
                 disabled={isUsed}
@@ -122,7 +171,11 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
               >
                 <Text style={[
                   styles.text,
-                  isUsed && styles.usedText
+                  { color: colors.white },
+                  isUsed && { 
+                    color: theme === 'light' ? '#6C757D' : 'rgba(255, 255, 255, 0.5)',
+                    textDecorationLine: 'line-through'
+                  }
                 ]}>
                   {word}
                 </Text>
@@ -136,8 +189,9 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
         <TouchableOpacity 
           style={styles.clearButton}
           onPress={() => setUsedWords([])}
+          activeOpacity={0.7}
         >
-          <Text style={styles.clearButtonText}>Сбросить выбор</Text>
+          <Text style={[styles.clearButtonText, { color: colors.primary }]}>Сбросить выбор</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -146,23 +200,13 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2c3e50',
     marginBottom: 12,
   },
   wordsGrid: {
@@ -177,32 +221,13 @@ const styles = StyleSheet.create({
   answerUnit: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#667eea',
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
     minWidth: 60,
     alignItems: 'center',
-  },
-  usedWord: {
-    backgroundColor: '#E9ECEF',
-    shadowOpacity: 0,
-    elevation: 0,
   },
   text: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  usedText: {
-    color: '#6C757D',
-    textDecorationLine: 'line-through',
   },
   clearButton: {
     marginTop: 12,
@@ -211,7 +236,6 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     fontSize: 14,
-    color: '#667eea',
     fontWeight: '500',
   },
 });

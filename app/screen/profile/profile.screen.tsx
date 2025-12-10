@@ -9,11 +9,32 @@ import { useTheme } from '../../contexts/ThemeContext';
 const { width, height } = Dimensions.get('window');
 
 const ProfileScreen = (): JSX.Element => {
-  const { theme, actualTheme, setTheme, colors } = useTheme();
+  const { theme, colors, setTheme } = useTheme();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(50)).current;
+  const glowAnim = React.useRef(new Animated.Value(0)).current;
+  
+  // Particles state
+  const [particles, setParticles] = React.useState<Array<{
+    id: number, 
+    x: number, 
+    y: number, 
+    scale: Animated.Value,
+    opacity: Animated.Value
+  }>>([]);
 
   React.useEffect(() => {
+    // Создаем частицы
+    const newParticles = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: Math.random() * width,
+      y: Math.random() * height,
+      scale: new Animated.Value(0.1),
+      opacity: new Animated.Value(0),
+    }));
+    setParticles(newParticles);
+
+    // Запускаем анимации
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -25,10 +46,44 @@ const ProfileScreen = (): JSX.Element => {
         duration: 600,
         useNativeDriver: true,
       }),
+      // Анимация свечения
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowAnim, {
+            toValue: 0.3,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      ),
     ]).start();
+
+    // Анимации для частиц
+    newParticles.forEach((particle, index) => {
+      setTimeout(() => {
+        Animated.parallel([
+          Animated.spring(particle.scale, {
+            toValue: 0.3 + Math.random() * 0.4,
+            tension: 60 + Math.random() * 40,
+            friction: 5 + Math.random() * 5,
+            useNativeDriver: true,
+          }),
+          Animated.timing(particle.opacity, {
+            toValue: 0.1 + Math.random() * 0.2,
+            duration: 800 + Math.random() * 400,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }, index * 50);
+    });
   }, []);
 
-  const toggleTheme = (newTheme: Theme) => {
+  const toggleTheme = (newTheme: 'light' | 'dark' | 'auto') => {
     setTheme(newTheme);
   };
 
@@ -38,36 +93,118 @@ const ProfileScreen = (): JSX.Element => {
       title: 'Светлая',
       icon: 'sunny',
       description: 'Яркая и чистая тема',
-      gradient: ['#FFD89B', '#19547B'],
+      gradient: theme === 'light' ? ['#FFD89B', '#19547B'] : ['#4A5568', '#2D3748'],
     },
     {
       id: 'dark',
       title: 'Темная',
       icon: 'moon',
       description: 'Комфорт для глаз',
-      gradient: ['#0F172A', '#1E293B'],
-    },
-    {
-      id: 'auto',
-      title: 'Авто',
-      icon: 'phone-portrait',
-      description: 'Системная тема',
-      gradient: ['#6366F1', '#8B5CF6'],
+      gradient: theme === 'dark' ? ['#0F172A', '#1E293B'] : ['#4A5568', '#2D3748'],
     },
   ];
 
+  // Функции для получения цветов в зависимости от темы
+  const getBackgroundGradient = () => {
+    if (theme === 'dark') {
+      return ['#0A0020', '#1A0030', '#0F0028'];
+    } else {
+      return ['#F0F5FF', '#E6F0FF', '#F8FAFF'];
+    }
+  };
+
+  const getParticleColor = () => {
+    return theme === 'dark' ? colors.primary + '40' : colors.primary + '20';
+  };
+
+  const getOrbColors = () => {
+    if (theme === 'dark') {
+      return {
+        orb1: 'rgba(102, 61, 255, 0.08)',
+        orb2: 'rgba(0, 212, 170, 0.06)',
+        orb3: 'rgba(139, 92, 255, 0.05)',
+      };
+    } else {
+      return {
+        orb1: 'rgba(99, 102, 241, 0.04)',
+        orb2: 'rgba(16, 185, 129, 0.03)',
+        orb3: 'rgba(139, 92, 255, 0.025)',
+      };
+    }
+  };
+
+  const orbColors = getOrbColors();
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       
-      {/* Background */}
-      <View style={styles.background}>
+      {/* Анимированный фон как на других страницах */}
+      <View style={styles.background} pointerEvents="none">
         <LinearGradient
-          colors={[colors.backgroundSecondary, colors.background]}
+          colors={getBackgroundGradient()}
           style={styles.backgroundGradient}
         />
+        
+        {/* Плавающие орбы */}
+        <Animated.View 
+          style={[
+            styles.floatingOrb1,
+            { 
+              backgroundColor: orbColors.orb1,
+              opacity: glowAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.5, 0.8]
+              }),
+            }
+          ]} 
+        />
+        <Animated.View 
+          style={[
+            styles.floatingOrb2,
+            { 
+              backgroundColor: orbColors.orb2,
+              opacity: glowAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.4, 0.7]
+              }),
+            }
+          ]} 
+        />
+        <Animated.View 
+          style={[
+            styles.floatingOrb3,
+            { 
+              backgroundColor: orbColors.orb3,
+              opacity: glowAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.3, 0.6]
+              }),
+            }
+          ]} 
+        />
+        
+        {/* Анимированные частицы */}
+        <View style={styles.particlesContainer}>
+          {particles.map(particle => (
+            <Animated.View
+              key={`particle-${particle.id}`}
+              style={[
+                styles.particle,
+                {
+                  left: particle.x,
+                  top: particle.y,
+                  transform: [{ scale: particle.scale }],
+                  opacity: particle.opacity,
+                  backgroundColor: getParticleColor(),
+                }
+              ]}
+            />
+          ))}
+        </View>
       </View>
 
-      <View style={styles.container}>
+      {/* Основной контент */}
+      <View style={[styles.container, { zIndex: 10 }]}>
         
         {/* Header Section */}
         <Animated.View 
@@ -79,14 +216,38 @@ const ProfileScreen = (): JSX.Element => {
             }
           ]}
         >
-          <View style={[styles.iconContainer, { shadowColor: colors.primary }]}>
+          <Animated.View 
+            style={[
+              styles.iconContainer, 
+              { 
+                shadowColor: colors.primary,
+                transform: [
+                  {
+                    scale: fadeAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.8, 1]
+                    })
+                  }
+                ]
+              }
+            ]}
+          >
             <LinearGradient
-              colors={[colors.primary, colors.primaryLight]}
+              colors={[colors.primary, colors.primaryLight || colors.primary]}
               style={styles.iconGradient}
             >
+              <Animated.View 
+                style={[
+                  styles.iconGlow,
+                  { 
+                    opacity: glowAnim,
+                    borderColor: colors.primary + '50',
+                  }
+                ]} 
+              />
               <Ionicons name="person" size={32} color={colors.white} />
             </LinearGradient>
-          </View>
+          </Animated.View>
           <Text style={[styles.mainTitle, { color: colors.text }]}>ПРОФИЛЬ</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Настройте приложение под себя</Text>
         </Animated.View>
@@ -135,16 +296,22 @@ const ProfileScreen = (): JSX.Element => {
                       }
                     ]}
                   >
-                    <TouchableOpacity
+                    <View
                       style={[
                         styles.themeButton,
                         {
                           backgroundColor: colors.backgroundSecondary,
                           borderColor: theme === option.id ? colors.primary : colors.border,
                           borderWidth: theme === option.id ? 2 : 1,
+                          shadowColor: theme === option.id ? colors.primary : 'transparent',
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: theme === option.id ? 0.2 : 0,
+                          shadowRadius: 8,
+                          elevation: theme === option.id ? 4 : 0,
                         }
                       ]}
-                      onPress={() => toggleTheme(option.id as Theme)}
+                      onStartShouldSetResponder={() => true}
+                      onResponderRelease={() => toggleTheme(option.id as 'light' | 'dark' | 'auto')}
                     >
                       <LinearGradient
                         colors={option.gradient}
@@ -171,83 +338,147 @@ const ProfileScreen = (): JSX.Element => {
                           <Ionicons name="checkmark" size={16} color={colors.white} />
                         </View>
                       )}
-                    </TouchableOpacity>
+                    </View>
                   </Animated.View>
                 ))}
               </View>
             </View>
 
-            {/* Stats Section */}
+            {/* Stats Section - В разработке */}
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="stats-chart" size={24} color={colors.secondary} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>ВАША СТАТИСТИКА</Text>
+              <View style={[
+                styles.comingSoonContainer, 
+                { 
+                  backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                  borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                }
+              ]}>
+                <Ionicons name="construct" size={40} color={colors.textSecondary} style={styles.comingSoonIcon} />
+                <Text style={[styles.comingSoonTitle, { color: colors.textSecondary }]}>
+                  Функция в разработке
+                </Text>
+                <Text style={[styles.comingSoonText, { color: colors.textTertiary }]}>
+                  Подробная статистика появится в следующем обновлении
+                </Text>
               </View>
 
-              <View style={styles.statsGrid}>
-                <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary }]}>
-                  <Ionicons name="time" size={24} color={colors.primary} />
-                  <Text style={[styles.statNumber, { color: colors.text }]}>24ч 30м</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Обучения</Text>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="stats-chart" size={24} color={colors.textSecondary} />
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>ВАША СТАТИСТИКА</Text>
+              </View>
+
+              <View style={[styles.statsGrid, { opacity: 0.5 }]}>
+                <View style={[
+                  styles.statCard, 
+                  { 
+                    backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                    borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    borderWidth: 1,
+                  }
+                ]}>
+                  <Ionicons name="time" size={24} color={colors.textSecondary} />
+                  <Text style={[styles.statNumber, { color: colors.textSecondary }]}>--:--</Text>
+                  <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Обучения</Text>
                 </View>
                 
-                <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary }]}>
-                  <Ionicons name="checkmark-done" size={24} color={colors.secondary} />
-                  <Text style={[styles.statNumber, { color: colors.text }]}>1,247</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Упражнений</Text>
+                <View style={[
+                  styles.statCard, 
+                  { 
+                    backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                    borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    borderWidth: 1,
+                  }
+                ]}>
+                  <Ionicons name="checkmark-done" size={24} color={colors.textSecondary} />
+                  <Text style={[styles.statNumber, { color: colors.textSecondary }]}>---</Text>
+                  <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Упражнений</Text>
                 </View>
                 
-                <View style={[styles.statCard, { backgroundColor: colors.backgroundSecondary }]}>
-                  <Ionicons name="trophy" size={24} color={colors.accent} />
-                  <Text style={[styles.statNumber, { color: colors.text }]}>87%</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Успеваемость</Text>
+                <View style={[
+                  styles.statCard, 
+                  { 
+                    backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                    borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    borderWidth: 1,
+                  }
+                ]}>
+                  <Ionicons name="trophy" size={24} color={colors.textSecondary} />
+                  <Text style={[styles.statNumber, { color: colors.textSecondary }]}>--%</Text>
+                  <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Успеваемость</Text>
                 </View>
               </View>
             </View>
 
-            {/* Settings Section */}
+            {/* Settings Section - В разработке */}
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="settings" size={24} color={colors.text} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>НАСТРОЙКИ</Text>
+              <View style={[
+                styles.comingSoonContainer, 
+                { 
+                  backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                  borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                }
+              ]}>
+                <Ionicons name="construct" size={40} color={colors.textSecondary} style={styles.comingSoonIcon} />
+                <Text style={[styles.comingSoonTitle, { color: colors.textSecondary }]}>
+                  Настройки в разработке
+                </Text>
+                <Text style={[styles.comingSoonText, { color: colors.textTertiary }]}>
+                  Расширенные настройки появятся в следующем обновлении
+                </Text>
               </View>
 
-              <View style={[styles.settingsList, { backgroundColor: colors.backgroundSecondary }]}>
-                <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="settings" size={24} color={colors.textSecondary} />
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>НАСТРОЙКИ</Text>
+              </View>
+
+              <View style={[
+                styles.settingsList, 
+                { 
+                  backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                  borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                  borderWidth: 1,
+                  opacity: 0.5 
+                }
+              ]}>
+                <View style={[styles.settingItem, { borderBottomColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }]}>
                   <View style={styles.settingInfo}>
-                    <Ionicons name="notifications" size={20} color={colors.text} />
-                    <Text style={[styles.settingText, { color: colors.text }]}>Уведомления</Text>
+                    <Ionicons name="notifications" size={20} color={colors.textSecondary} />
+                    <Text style={[styles.settingText, { color: colors.textSecondary }]}>Уведомления</Text>
                   </View>
                   <Switch
-                    value={true}
+                    value={false}
+                    disabled={true}
                     onValueChange={() => {}}
-                    trackColor={{ false: colors.border, true: colors.primary }}
+                    trackColor={{ false: colors.border + '80', true: colors.primary + '80' }}
                     thumbColor={colors.white}
                   />
                 </View>
 
-                <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
+                <View style={[styles.settingItem, { borderBottomColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }]}>
                   <View style={styles.settingInfo}>
-                    <Ionicons name="volume-high" size={20} color={colors.text} />
-                    <Text style={[styles.settingText, { color: colors.text }]}>Звуки</Text>
+                    <Ionicons name="volume-high" size={20} color={colors.textSecondary} />
+                    <Text style={[styles.settingText, { color: colors.textSecondary }]}>Звуки</Text>
                   </View>
                   <Switch
-                    value={true}
+                    value={false}
+                    disabled={true}
                     onValueChange={() => {}}
-                    trackColor={{ false: colors.border, true: colors.primary }}
+                    trackColor={{ false: colors.border + '80', true: colors.primary + '80' }}
                     thumbColor={colors.white}
                   />
                 </View>
 
                 <View style={styles.settingItem}>
                   <View style={styles.settingInfo}>
-                    <Ionicons name="download" size={20} color={colors.text} />
-                    <Text style={[styles.settingText, { color: colors.text }]}>Оффлайн режим</Text>
+                    <Ionicons name="download" size={20} color={colors.textSecondary} />
+                    <Text style={[styles.settingText, { color: colors.textSecondary }]}>Оффлайн режим</Text>
                   </View>
                   <Switch
                     value={false}
+                    disabled={true}
                     onValueChange={() => {}}
-                    trackColor={{ false: colors.border, true: colors.primary }}
+                    trackColor={{ false: colors.border + '80', true: colors.primary + '80' }}
                     thumbColor={colors.white}
                   />
                 </View>
@@ -267,7 +498,7 @@ const ProfileScreen = (): JSX.Element => {
           ]}
         >
           <Text style={[styles.footerText, { color: colors.textTertiary }]}>
-            English Master Pro v2.0.0
+            Держи грамматику v1.0.0
           </Text>
         </Animated.View>
 
@@ -276,26 +507,52 @@ const ProfileScreen = (): JSX.Element => {
   );
 };
 
-const TouchableOpacity = ({ style, onPress, children }: any) => (
-  <View style={style} onStartShouldSetResponder={() => true} onResponderRelease={onPress}>
-    {children}
-  </View>
-);
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   background: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
   backgroundGradient: {
     ...StyleSheet.absoluteFillObject,
+  },
+  floatingOrb1: {
+    position: 'absolute',
+    top: '10%',
+    right: '5%',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+  },
+  floatingOrb2: {
+    position: 'absolute',
+    bottom: '15%',
+    left: '5%',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  floatingOrb3: {
+    position: 'absolute',
+    top: '50%',
+    left: '70%',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  particlesContainer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  particle: {
+    position: 'absolute',
+    width: 4,
+    height: 4,
+    borderRadius: 2,
   },
   container: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 10,
+    zIndex: 10,
   },
   headerSection: {
     alignItems: 'center',
@@ -315,6 +572,12 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  iconGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 40,
+    borderWidth: 2,
   },
   mainTitle: {
     fontSize: 32,
@@ -394,6 +657,29 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  // Стили для блоков "в разработке"
+  comingSoonContainer: {
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  comingSoonIcon: {
+    marginBottom: 12,
+  },
+  comingSoonTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  comingSoonText: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   statsGrid: {
     flexDirection: 'row',

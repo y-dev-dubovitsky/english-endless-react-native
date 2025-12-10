@@ -14,60 +14,80 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-// Цвета для светлой темы
+// Цвета для светлой темы - мягкие приятные тона
 export const lightColors = {
-  primary: '#6366F1',
-  primaryLight: '#8B5CF6',
-  secondary: '#10B981',
-  secondaryLight: '#34D399',
-  accent: '#F59E0B',
-  accentLight: '#FBBF24',
+  // Основные цвета - мягкие пастельные оттенки
+  primary: '#667EEA', // Мягкий лавандовый синий
+  primaryLight: '#A5B4FC', // Светлый лавандовый
+  secondary: '#4FD1C5', // Мятный бирюзовый
+  secondaryLight: '#81E6D9', // Светлый мятный
+  accent: '#F687B3', // Нежный розовый
+  accentLight: '#FBB6CE', // Светлый розовый
   
-  background: '#FFFFFF',
-  backgroundSecondary: '#F8FAFC',
-  backgroundTertiary: '#F1F5F9',
+  // Фоновые цвета - очень светлые, почти белые с оттенками
+  background: '#FAFAFA', // Очень светлый серый
+  backgroundSecondary: '#F3F4F6', // Светло-серый
+  backgroundTertiary: '#E5E7EB', // Нейтральный серый
   
-  text: '#1E293B',
-  textSecondary: '#475569',
-  textTertiary: '#64748B',
+  // Текст - мягкие серые оттенки
+  text: '#374151', // Темно-серый (почти черный)
+  textSecondary: '#6B7280', // Средний серый
+  textTertiary: '#9CA3AF', // Светлый серый
   
-  border: '#E2E8F0',
-  borderLight: '#F1F5F9',
+  // Границы - очень светлые
+  border: '#D1D5DB', // Светло-серый
+  borderLight: '#E5E7EB', // Очень светлый серый
   
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
+  // Статусные цвета
+  success: '#10B981', // Зеленый
+  warning: '#F59E0B', // Оранжевый
+  error: '#EF4444', // Красный
   
+  // Базовые
   white: '#FFFFFF',
   black: '#000000',
+  
+  // Дополнительные мягкие цвета для градиентов
+  gradientStart: '#667EEA',
+  gradientEnd: '#764BA2',
 };
 
-// Цвета для темной темы
+// Цвета для темной темы - темные но не черные, с цветными акцентами
 export const darkColors = {
-  primary: '#8B5CF6',
-  primaryLight: '#A78BFA',
-  secondary: '#34D399',
-  secondaryLight: '#6EE7B7',
-  accent: '#FBBF24',
-  accentLight: '#FCD34D',
+  // Основные цвета - более насыщенные версии светлых
+  primary: '#7C3AED', // Насыщенный фиолетовый
+  primaryLight: '#8B5CF6', // Яркий фиолетовый
+  secondary: '#0D9488', // Глубокий бирюзовый
+  secondaryLight: '#14B8A6', // Светлый бирюзовый
+  accent: '#DB2777', // Яркий розовый
+  accentLight: '#EC4899', // Светлый розовый
   
-  background: '#0F172A',
-  backgroundSecondary: '#1E293B',
-  backgroundTertiary: '#334155',
+  // Фоновые цвета - темные но не черные
+  background: '#111827', // Темно-сине-серый
+  backgroundSecondary: '#1F2937', // Темный серый
+  backgroundTertiary: '#374151', // Средний темно-серый
   
-  text: '#F1F5F9',
-  textSecondary: '#CBD5E1',
-  textTertiary: '#94A3B8',
+  // Текст - светлые оттенки для контраста
+  text: '#F9FAFB', // Почти белый
+  textSecondary: '#D1D5DB', // Светло-серый
+  textTertiary: '#788499ff', // Средний серый
   
-  border: '#334155',
-  borderLight: '#475569',
+  // Границы - темные с оттенками
+  border: '#4B5563', // Темно-серый
+  borderLight: '#6B7280', // Средний серый
   
-  success: '#34D399',
-  warning: '#FBBF24',
-  error: '#F87171',
+  // Статусные цвета
+  success: '#10B981', // Зеленый
+  warning: '#F59E0B', // Оранжевый
+  error: '#EF4444', // Красный
   
+  // Базовые
   white: '#FFFFFF',
   black: '#000000',
+  
+  // Дополнительные цвета для градиентов
+  gradientStart: '#7C3AED',
+  gradientEnd: '#3730A3',
 };
 
 const THEME_STORAGE_KEY = 'app_theme';

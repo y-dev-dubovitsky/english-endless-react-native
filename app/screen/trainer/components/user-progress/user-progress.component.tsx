@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, Animated } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../../../contexts/ThemeContext'; // Добавляем импорт
 
 type UserProgressComponentProps = {
   progressElementList: JSX.Element[];
@@ -10,7 +11,9 @@ const UserProgressComponent: React.FC<UserProgressComponentProps> = ({
   progressElementList,
   streak = 0,
 }): JSX.Element => {
-  const recentProgress = progressElementList.slice(-20); // Показываем только последние 20
+  const { colors, theme } = useTheme(); // Получаем тему
+  
+  const recentProgress = progressElementList.slice(-20);
 
   const getProgressStats = () => {
     const total = recentProgress.length;
@@ -22,28 +25,65 @@ const UserProgressComponent: React.FC<UserProgressComponentProps> = ({
 
   const { total, correct, accuracy } = getProgressStats();
 
+  const getShadowStyle = () => {
+    if (theme === 'light') {
+      return {
+        shadowColor: 'rgba(0, 0, 0, 0.08)',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 8,
+      };
+    } else {
+      return {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+        elevation: 10,
+      };
+    }
+  };
+
+  const getGradientColors = () => {
+    if (theme === 'light') {
+      return ['#FFFFFF', '#F8F9FA'];
+    } else {
+      return [colors.backgroundSecondary, colors.backgroundSecondary];
+    }
+  };
+
+  const getAccuracyColor = () => {
+    if (accuracy >= 80) return theme === 'light' ? '#28A745' : '#4CAF50';
+    if (accuracy >= 60) return theme === 'light' ? '#FFC107' : '#FFB300';
+    return theme === 'light' ? '#DC3545' : '#F44336';
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Прогресс</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Прогресс</Text>
         <View style={styles.stats}>
-          <Text style={styles.accuracyText}>{accuracy}%</Text>
-          <Text style={styles.statsText}>{correct}/{total}</Text>
+          <Text style={[styles.accuracyText, { color: getAccuracyColor() }]}>{accuracy}%</Text>
+          <Text style={[styles.statsText, { color: colors.textSecondary }]}>{correct}/{total}</Text>
         </View>
       </View>
       
-      <View style={styles.progressCard}>
+      <View style={[styles.progressCard, getShadowStyle()]}>
         <LinearGradient
-          colors={['#FFFFFF', '#F8F9FA']}
+          colors={getGradientColors()}
           style={styles.progressGradient}
         >
           {/* Progress bars */}
           <View style={styles.progressBars}>
-            <View style={styles.accuracyBar}>
+            <View style={[styles.accuracyBar, { backgroundColor: theme === 'light' ? '#E9ECEF' : 'rgba(255, 255, 255, 0.1)' }]}>
               <View 
                 style={[
                   styles.accuracyFill,
-                  { width: `${accuracy}%` }
+                  { 
+                    width: `${accuracy}%`,
+                    backgroundColor: getAccuracyColor()
+                  }
                 ]} 
               />
             </View>
@@ -54,14 +94,22 @@ const UserProgressComponent: React.FC<UserProgressComponentProps> = ({
             {recentProgress.length > 0 ? (
               recentProgress
             ) : (
-              <Text style={styles.emptyText}>Начните тренировку</Text>
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Начните тренировку</Text>
             )}
           </View>
 
           {/* Streak indicator */}
           {streak >= 3 && (
-            <View style={styles.streakIndicator}>
-              <Text style={styles.streakText}>🔥 Серия: {streak}</Text>
+            <View style={[
+              styles.streakIndicator,
+              { backgroundColor: theme === 'light' ? '#FFF3CD' : 'rgba(255, 195, 0, 0.2)' }
+            ]}>
+              <Text style={[
+                styles.streakText,
+                { color: theme === 'light' ? '#856404' : '#FFC107' }
+              ]}>
+                🔥 Серия: {streak}
+              </Text>
             </View>
           )}
         </LinearGradient>
@@ -84,7 +132,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2c3e50',
   },
   stats: {
     flexDirection: 'row',
@@ -94,23 +141,13 @@ const styles = StyleSheet.create({
   accuracyText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#28A745',
   },
   statsText: {
     fontSize: 14,
-    color: '#6C757D',
     fontWeight: '500',
   },
   progressCard: {
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
   },
   progressGradient: {
     borderRadius: 16,
@@ -121,13 +158,11 @@ const styles = StyleSheet.create({
   },
   accuracyBar: {
     height: 6,
-    backgroundColor: '#E9ECEF',
     borderRadius: 3,
     overflow: 'hidden',
   },
   accuracyFill: {
     height: '100%',
-    backgroundColor: '#28A745',
     borderRadius: 3,
   },
   progressElementsContainer: {
@@ -140,7 +175,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#6C757D',
     textAlign: 'center',
     width: '100%',
     fontStyle: 'italic',
@@ -148,14 +182,12 @@ const styles = StyleSheet.create({
   streakIndicator: {
     marginTop: 8,
     padding: 8,
-    backgroundColor: '#FFF3CD',
     borderRadius: 8,
     alignItems: 'center',
   },
   streakText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#856404',
   },
 });
 
