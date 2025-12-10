@@ -7,9 +7,9 @@ import {
   Dimensions,
 } from "react-native";
 import { SentenceInterface, TenseInterface } from "../../../../types";
-import { default as rndRangeNum } from "../../../../utils/randomNumberInRange";
-import { useState, useEffect } from "react";
-import { useTheme } from '../../../../contexts/ThemeContext'; // Добавляем импорт
+import { memo, useMemo, useCallback, useState, useRef, useEffect } from "react";
+import { useTheme } from '../../../../contexts/ThemeContext';
+import { useWordsManager } from '../../../../hooks/useWordsManager';
 
 const { width } = Dimensions.get('window');
 
@@ -19,63 +19,38 @@ interface AnswerUnitsComponentProps {
   setUserAnswer: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
+const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = memo(({
   tense,
   sentence,
   setUserAnswer,
 }): JSX.Element => {
-  const { colors, theme } = useTheme(); // Получаем тему
+  const { colors, theme } = useTheme();
+  const { getAllWords } = useWordsManager(sentence, tense);
   
   const [usedWords, setUsedWords] = useState<string[]>([]);
-  const [scaleAnims] = useState<Animated.Value[]>([]);
+  const scaleAnimsRef = useRef<Map<string, Animated.Value>>(new Map());
+  const allWords = useMemo(() => getAllWords(), [getAllWords]);
 
   // Инициализация анимаций
   useEffect(() => {
-    const words = getPossibleAnswerUnitsArray(sentence, tense);
-    words.forEach((_, index) => {
-      scaleAnims[index] = new Animated.Value(1); // Изменяем с 0 на 1 для правильной анимации
+    allWords.forEach(word => {
+      if (!scaleAnimsRef.current.has(word)) {
+        scaleAnimsRef.current.set(word, new Animated.Value(1));
+      }
     });
-  }, [sentence]);
+  }, [allWords]);
 
-  const getPossibleAnswerUnitsArray = (
-    sentence: SentenceInterface,
-    tense: TenseInterface | undefined
-  ): Array<string> => {
-    if (!tense) return [""];
+  const handleWordPress = useCallback((word: string) => {
+    const anim = scaleAnimsRef.current.get(word);
+    if (!anim) return;
 
-    const sentenceWords = sentence.ru.split(" ").filter(word => word.trim() !== "");
-    
-    const allPronouns = Object.values(tense.pronounts).flat().flatMap(arr => 
-      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
-    );
-    
-    const allAuxiliaries = Object.values(tense.auxiliaries).flat().flatMap(arr =>
-      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
-    );
-    
-    const allVerbs = Object.values(tense.verbs).flat().flatMap(arr =>
-      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
-    );
-
-    const allWords = [...new Set([
-      ...sentenceWords,
-      ...allPronouns,
-      ...allAuxiliaries,
-      ...allVerbs,
-    ].filter(word => word && word.trim() !== ""))];
-
-    return allWords.sort(() => Math.random() - 0.5);
-  };
-
-  const handleWordPress = (word: string, index: number) => {
-    // Анимация нажатия
     Animated.sequence([
-      Animated.timing(scaleAnims[index], {
+      Animated.timing(anim, {
         toValue: 0.9,
         duration: 100,
         useNativeDriver: true,
       }),
-      Animated.timing(scaleAnims[index], {
+      Animated.timing(anim, {
         toValue: 1,
         duration: 100,
         useNativeDriver: true,
@@ -88,9 +63,9 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
     });
 
     setUsedWords(prev => [...prev, word]);
-  };
+  }, [setUserAnswer]);
 
-  const getShadowStyle = () => {
+  const getShadowStyle = useCallback(() => {
     if (theme === 'light') {
       return {
         shadowColor: 'rgba(0, 0, 0, 0.1)',
@@ -108,9 +83,9 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
         elevation: 4,
       };
     }
-  };
+  }, [theme]);
 
-  const getContainerShadowStyle = () => {
+  const getContainerShadowStyle = useCallback(() => {
     if (theme === 'light') {
       return {
         shadowColor: 'rgba(0, 0, 0, 0.08)',
@@ -128,24 +103,27 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
         elevation: 10,
       };
     }
-  };
+  }, [theme]);
 
-  const words = getPossibleAnswerUnitsArray(sentence, tense);
+  const handleClearSelection = useCallback(() => {
+    setUsedWords([]);
+    setUserAnswer('');
+  }, [setUserAnswer]);
+
+  const containerShadowStyle = useMemo(() => getContainerShadowStyle(), [getContainerShadowStyle]);
+  const shadowStyle = useMemo(() => getShadowStyle(), [getShadowStyle]);
 
   return (
     <View style={[
       styles.container,
       { backgroundColor: colors.backgroundSecondary },
-      getContainerShadowStyle()
+      containerShadowStyle
     ]}>
       <Text style={[styles.title, { color: colors.text }]}>Выберите слова:</Text>
       
       <View style={styles.wordsGrid}>
-        {words.map((word, index) => {
-          if (!scaleAnims[index]) {
-            scaleAnims[index] = new Animated.Value(1);
-          }
-
+        {allWords.map((word, index) => {
+          const anim = scaleAnimsRef.current.get(word) || new Animated.Value(1);
           const isUsed = usedWords.includes(word);
           
           return (
@@ -153,19 +131,19 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
               key={`${word}-${index}`}
               style={[
                 styles.wordWrapper,
-                { transform: [{ scale: scaleAnims[index] }] }
+                { transform: [{ scale: anim }] }
               ]}
             >
               <TouchableOpacity
                 style={[
                   styles.answerUnit,
-                  getShadowStyle(),
+                  shadowStyle,
                   { backgroundColor: colors.primary },
                   isUsed && { 
                     backgroundColor: theme === 'light' ? '#E9ECEF' : 'rgba(255, 255, 255, 0.1)'
                   },
                 ]}
-                onPress={() => handleWordPress(word, index)}
+                onPress={() => handleWordPress(word)}
                 disabled={isUsed}
                 activeOpacity={0.7}
               >
@@ -188,7 +166,7 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
       {usedWords.length > 0 && (
         <TouchableOpacity 
           style={styles.clearButton}
-          onPress={() => setUsedWords([])}
+          onPress={handleClearSelection}
           activeOpacity={0.7}
         >
           <Text style={[styles.clearButtonText, { color: colors.primary }]}>Сбросить выбор</Text>
@@ -196,7 +174,9 @@ const AnswerUnitsComponent: React.FC<AnswerUnitsComponentProps> = ({
       )}
     </View>
   );
-};
+});
+
+AnswerUnitsComponent.displayName = 'AnswerUnitsComponent';
 
 const styles = StyleSheet.create({
   container: {
@@ -215,9 +195,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     gap: 8,
   },
-  wordWrapper: {
-    // Обертка для анимации
-  },
+  wordWrapper: {},
   answerUnit: {
     paddingHorizontal: 16,
     paddingVertical: 10,

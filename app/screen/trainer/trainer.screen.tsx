@@ -1,48 +1,430 @@
-// trainer.screen.tsx - исправленная версия
-import Ionicons from "@expo/vector-icons/Ionicons";
-import React, { useEffect, useState } from "react";
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
+// trainer.screen.tsx - исправленная версия с модалкой для неправильного ответа
+import Ionicons from '@expo/vector-icons/Ionicons';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
   Animated,
   TouchableOpacity,
   Vibration,
   Dimensions,
-  ScrollView
-} from "react-native";
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SentenceInterface, TenseInterface } from "../../types";
-import { default as rndRangeNum } from "../../utils/randomNumberInRange";
+import { SentenceInterface, TenseInterface } from '../../types';
+import { default as rndRangeNum } from '../../utils/randomNumberInRange';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
+// Моковые слова для вариантов ответов
+const MOCK_WORDS = [
+  'есть',
+  'есть',
+  'есть',
+  'был',
+  'были',
+  'иметь',
+  'имеет',
+  'имел',
+  'делать',
+  'делает',
+  'делал',
+  'буду',
+  'бы',
+  'могу',
+  'мог',
+  'должен',
+  'может',
+  'может быть',
+  'должен',
+  'должен',
+  'идти',
+  'шел',
+  'увидеть',
+  'увидел',
+  'взять',
+  'взял',
+  'сделать',
+  'сделал',
+  'приходить',
+  'пришел',
+  'знать',
+  'знал',
+  'получить',
+  'получил',
+  'дать',
+  'дал',
+  'найти',
+  'нашел',
+  'думать',
+  'думал',
+  'сказать',
+  'сказал',
+  'хотеть',
+  'хотел',
+  'оставлять',
+  'оставить',
+  'помнить',
+  'забыть',
+  'чувствовать',
+  'чувствовал',
+  'разговаривать',
+  'говорить',
+  'работать',
+  'учить',
+  'обучать',
+  'покупать',
+  'продавать',
+  'играть',
+  'смотреть',
+  'ждать',
+  'ждал',
+  'бить',
+  'встречать',
+  'лететь',
+  'летел',
+  'писать',
+  'написал',
+  'кричать',
+  'плакать',
+  'улыбаться',
+  'смеяться',
+  'ходить',
+  'бежать',
+  'прыгать',
+  'танцевать',
+  'чистить',
+  'мыть',
+  'звать',
+  'звонил',
+  'слышать',
+  'слушать',
+  'наблюдать',
+  'сидеть',
+  'стоял',
+  'путешествовать',
+  'жить',
+  'умереть',
+  'помогать',
+  'желать',
+  'выбирать',
+  'искать',
+  'спрашивать',
+  'отвечать',
+  'пробовать',
+  'регулировать',
+  'добавлять',
+  'удалять',
+  'заботиться',
+  'равняться',
+  'сравнивать',
+  'миновать',
+  'оставлять',
+  'заставлять',
+  'размышлять',
+  'доказывать',
+  'выражать',
+  'кричать',
+  'восклицать',
+  'находить',
+  'показывать',
+  'соединять',
+  'приходить',
+  'покидывать',
+  'прийти',
+  'открывать',
+  'закрывать',
+  'добавить',
+  'заменять',
+  'устанавливать',
+  'продолжать',
+  'переставать',
+  'понимать',
+  'изучать',
+  'переводить',
+  'призывать',
+  'платить',
+  'замышлять',
+  'критиковать',
+  'осуждать',
+  'дразнить',
+  'покидать',
+  'уверять',
+  'обещать',
+  'разводить',
+  'смешивать',
+  'применять',
+  'собеседовать',
+  'отвечать',
+  'изменять',
+  'оправдывать',
+  'участвовать',
+  'признавать',
+  'фиксировать',
+  'освобождать',
+  'признавать',
+  'потрясать',
+  'завершать',
+  'достигать',
+  'устраивать',
+  'выводить',
+  'утверждать',
+  'возвращать',
+  'договариваться',
+  'делить',
+  'разминать',
+  'наказывать',
+  'менять',
+  'принимать',
+  'выводить',
+  'фокусировать',
+  'править',
+  'формировать',
+  'развивать',
+  'заслуживать',
+  'защищать',
+  'проверять',
+  'избегать',
+  'охранять',
+  'выразить',
+  'выбирать',
+  'мириться',
+  'прощать',
+  'исправлять',
+  'объяснять',
+  'передавать',
+  'управлять',
+  'проводить',
+  'поддерживать',
+  'разгадывать',
+  'считать',
+  'покорять',
+  'объяснять',
+  'исследовать',
+  'преодолевать',
+  'находить',
+  'объединять',
+  'отпускать',
+  'заботиться',
+  'рекомендовать',
+  'сохранять',
+  'планировать',
+  'развивать',
+  'сформировать',
+  'улучшать',
+  'формировать',
+  'производить',
+  'анализировать',
+  'исследовать',
+  'конструировать',
+  'создавать',
+  'проектировать',
+  'проверять',
+  'настраивать',
+  'подготавливать',
+  'выражать',
+  'предлагать',
+  'оставлять',
+  'показывать',
+  'рассматривать',
+  'укреплять',
+  'разрабатывать',
+  'утверждать',
+  'доказывать',
+  'выявлять',
+  'привлекать',
+  'применять',
+  'ассоциировать',
+  'выдавать',
+  'сообщать',
+  'завершать',
+  'вводить',
+  'заключать',
+  'устанавливать',
+  'документировать',
+  'соединять',
+  'предсказывать',
+  'понимать',
+  'исправлять',
+  'контролировать',
+  'жарить',
+  'печь',
+  'варить',
+  'мешать',
+  'разливать',
+  'усиливать',
+  'уменьшать',
+  'дотрагиваться',
+  'изменять',
+  'мыслить',
+  'интерпретировать',
+  'разъяснять',
+  'опростить',
+  'заботиться',
+  'обсуждать',
+  'настраивать',
+  'включать',
+  'выключать',
+  'помогать',
+  'упрощать',
+  'формировать',
+  'смешивать',
+  'изменять',
+  'проектировать',
+  'управлять',
+  'вводить',
+  'освобождать',
+  'накапливать',
+  'снижать',
+  'укрывать',
+  'габарировать',
+  'уточнять',
+  'приспосабливать',
+  'обнаруживать',
+  'отслеживать',
+  'разгерметизировать',
+  'сфокусировать',
+  'подводить',
+  'собирать',
+  'размышлять',
+  'проектировать',
+];
+
 const TrainerComponent = (props: any): JSX.Element => {
   const { theme, colors } = useTheme();
-  
   const { tense } = props.route.params!;
 
   // States
-  const [sentence, setSentence] = useState<SentenceInterface>({ en: "", ru: "" });
+  const [sentence, setSentence] = useState<SentenceInterface>({
+    en: '',
+    ru: '',
+  });
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
-  const [progress, setProgress] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 });
+  const [progress, setProgress] = useState<{ correct: number; total: number }>({
+    correct: 0,
+    total: 0,
+  });
   const [isAnswerVisible, setIsAnswerVisible] = useState<boolean>(false);
+  const [isWrongAnswerVisible, setIsWrongAnswerVisible] =
+    useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
-  const [particles, setParticles] = useState<Array<{id: number, x: number, y: number}>>([]);
-  const [particleCounter, setParticleCounter] = useState(0); // Счетчик для уникальных ID
+  const [particles, setParticles] = useState<
+    Array<{ id: number; x: number; y: number }>
+  >([]);
+  const particleIdCounter = useRef(0);
+
+  // Refs для кеширования
+  const possibleWordsRef = useRef<string[]>([]);
+  const prevSentenceRef = useRef<string>('');
+  const prevTenseRef = useRef<string>('');
 
   // Animations
-  const mainSlide = React.useRef(new Animated.Value(height)).current;
-  const cardScale = React.useRef(new Animated.Value(0.8)).current;
-  const glowAnim = React.useRef(new Animated.Value(0)).current;
-  const successAnim = React.useRef(new Animated.Value(0)).current;
+  const mainSlide = useRef(new Animated.Value(height)).current;
+  const cardScale = useRef(new Animated.Value(0.8)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const successAnim = useRef(new Animated.Value(0)).current;
+  const wrongAnswerModalAnim = useRef(new Animated.Value(0)).current;
+
+  // Генерация возможных слов с мемоизацией
+  const getPossibleWords = useCallback(
+    (
+      sentence: SentenceInterface,
+      tense: TenseInterface | undefined
+    ): string[] => {
+      const sentenceStr = JSON.stringify(sentence);
+      const tenseStr = JSON.stringify(tense);
+
+      // Если ничего не изменилось, возвращаем кешированный результат
+      if (
+        sentenceStr === prevSentenceRef.current &&
+        tenseStr === prevTenseRef.current &&
+        possibleWordsRef.current.length > 0
+      ) {
+        return [...possibleWordsRef.current];
+      }
+
+      if (!tense) {
+        const mockWords = [...MOCK_WORDS].sort(() => Math.random() - 0.5);
+        possibleWordsRef.current = mockWords;
+        return mockWords;
+      }
+
+      const sentenceWords = sentence.ru
+        .split(' ')
+        .filter(word => word.trim() !== '');
+
+      const allPronouns = Object.values(tense.pronounts)
+        .flat()
+        .flatMap(arr =>
+          Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
+        );
+
+      const allAuxiliaries = Object.values(tense.auxiliaries)
+        .flat()
+        .flatMap(arr =>
+          Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
+        );
+
+      const allVerbs = Object.values(tense.verbs)
+        .flat()
+        .flatMap(arr =>
+          Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
+        );
+
+      const allRealWords = [
+        ...new Set(
+          [
+            ...sentenceWords,
+            ...allPronouns,
+            ...allAuxiliaries,
+            ...allVerbs,
+          ].filter(word => word && word.trim() !== '')
+        ),
+      ];
+
+      // Добавляем моковые слова (30-50% от количества реальных слов)
+      const mockWordsCount = Math.max(
+        3,
+        Math.min(MOCK_WORDS.length, Math.floor(allRealWords.length * 0.4))
+      );
+
+      const shuffledMockWords = [...MOCK_WORDS]
+        .sort(() => Math.random() - 0.5)
+        .slice(0, mockWordsCount)
+        .filter(word => !allRealWords.includes(word));
+
+      const allWords = [...allRealWords, ...shuffledMockWords].sort(
+        () => Math.random() - 0.5
+      );
+
+      // Сохраняем для кеширования
+      possibleWordsRef.current = allWords;
+      prevSentenceRef.current = sentenceStr;
+      prevTenseRef.current = tenseStr;
+
+      return allWords;
+    },
+    []
+  );
+
+  const possibleWords = useMemo(
+    () => getPossibleWords(sentence, tense),
+    [getPossibleWords, sentence, tense]
+  );
 
   useEffect(() => {
     tense !== undefined && getNextSentence(tense);
-    
+
     // Epic entrance animation
     Animated.parallel([
       Animated.spring(mainSlide, {
@@ -80,103 +462,93 @@ const TrainerComponent = (props: any): JSX.Element => {
       y: Math.random() * height,
     }));
     setParticles(newParticles);
-    setParticleCounter(15); // Устанавливаем начальный счетчик
+    particleIdCounter.current = 15;
   }, []);
 
   // Methods
-  const getOnlyKey = (object: object) => Object.keys(object)[0];
-  const getOnlyValue = (object: object) => Object.values(object)[0];
+  const getOnlyKey = useCallback(
+    (object: object) => Object.keys(object)[0],
+    []
+  );
+  const getOnlyValue = useCallback(
+    (object: object) => Object.values(object)[0],
+    []
+  );
 
-  const buildSentence = (...words: Array<string>): string => {
-    return words.join(" ").trim();
-  };
+  const buildSentence = useCallback((...words: Array<string>): string => {
+    return words.join(' ').trim();
+  }, []);
 
-  const navigateToMainPage = () => {
+  const navigateToMainPage = useCallback(() => {
     props.navigation.goBack();
-  };
+  }, [props.navigation]);
 
-  const getPossibleWords = (sentence: SentenceInterface, tense: TenseInterface | undefined): string[] => {
-    if (!tense) return [];
-    
-    const sentenceWords = sentence.ru.split(" ").filter(word => word.trim() !== "");
-    
-    const allPronouns = Object.values(tense.pronounts).flat().flatMap(arr => 
-      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
-    );
-    
-    const allAuxiliaries = Object.values(tense.auxiliaries).flat().flatMap(arr =>
-      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
-    );
-    
-    const allVerbs = Object.values(tense.verbs).flat().flatMap(arr =>
-      Array.isArray(arr) ? arr.map(obj => Object.values(obj)[0]) : []
-    );
+  const handleWordSelect = useCallback(
+    (word: string) => {
+      if (selectedWords.includes(word)) {
+        return;
+      }
 
-    return [...new Set([...sentenceWords, ...allPronouns, ...allAuxiliaries, ...allVerbs])]
-      .filter(word => word && word.trim() !== "")
-      .sort(() => Math.random() - 0.5);
-  };
+      Vibration.vibrate(15);
+      const newSelectedWords = [...selectedWords, word];
+      setSelectedWords(newSelectedWords);
 
-  const handleWordSelect = (word: string) => {
-    if (selectedWords.includes(word)) {
-      return;
-    }
-    
-    Vibration.vibrate(15);
-    const newSelectedWords = [...selectedWords, word];
-    setSelectedWords(newSelectedWords);
-    
-    // Add selection particle effect with unique ID
-    const newParticleId = particleCounter;
-    setParticleCounter(prev => prev + 1);
-    
-    const newParticle = {
-      id: newParticleId,
-      x: Math.random() * width,
-      y: height * 0.7,
-    };
-    setParticles(prev => [...prev.slice(-50), newParticle]); // Ограничиваем количество частиц
-    
-    // Автоматическое удаление частицы через 3 секунды
-    setTimeout(() => {
-      setParticles(prev => prev.filter(p => p.id !== newParticleId));
-    }, 3000);
-  };
+      // Add selection particle effect with unique ID
+      const newParticleId = particleIdCounter.current;
+      particleIdCounter.current += 1;
 
-  const handleWordDeselect = (index: number) => {
-    Vibration.vibrate(15);
-    const newSelectedWords = selectedWords.filter((_, i) => i !== index);
-    setSelectedWords(newSelectedWords);
-  };
+      const newParticle = {
+        id: newParticleId,
+        x: Math.random() * width,
+        y: height * 0.7,
+      };
+      setParticles(prev => [...prev.slice(-50), newParticle]); // Ограничиваем количество частиц
 
-  const clearAnswer = () => {
+      // Автоматическое удаление частицы через 3 секунды
+      setTimeout(() => {
+        setParticles(prev => prev.filter(p => p.id !== newParticleId));
+      }, 3000);
+    },
+    [selectedWords]
+  );
+
+  const handleWordDeselect = useCallback(
+    (index: number) => {
+      Vibration.vibrate(15);
+      const newSelectedWords = selectedWords.filter((_, i) => i !== index);
+      setSelectedWords(newSelectedWords);
+    },
+    [selectedWords]
+  );
+
+  const clearAnswer = useCallback(() => {
     setSelectedWords([]);
-  };
+  }, []);
 
-  const createSuccessParticles = () => {
+  const createSuccessParticles = useCallback(() => {
     const successParticles = Array.from({ length: 25 }, (_, i) => {
-      const id = particleCounter + i;
+      const id = particleIdCounter.current + i;
       return {
         id,
         x: width / 2,
         y: height / 2,
       };
     });
-    
-    setParticleCounter(prev => prev + 25);
+
+    particleIdCounter.current += 25;
     setParticles(prev => [...prev, ...successParticles]);
-    
+
     // Автоматическое удаление успешных частиц через 2 секунды
     setTimeout(() => {
       const idsToRemove = successParticles.map(p => p.id);
       setParticles(prev => prev.filter(p => !idsToRemove.includes(p.id)));
     }, 2000);
-  };
+  }, []);
 
-  const playSuccessAnimation = () => {
+  const playSuccessAnimation = useCallback(() => {
     Vibration.vibrate(70);
     createSuccessParticles();
-    
+
     Animated.sequence([
       Animated.timing(successAnim, {
         toValue: 1,
@@ -190,78 +562,137 @@ const TrainerComponent = (props: any): JSX.Element => {
         useNativeDriver: true,
       }),
     ]).start();
-  };
+  }, [createSuccessParticles, successAnim]);
 
-  const checkAnswer = () => {
-    const userAnswer = selectedWords.join(" ");
-    const isCorrect = userAnswer.replace(/\s+/g, ' ').trim() === sentence.ru.replace(/\s+/g, ' ').trim();
-    
+  const showWrongAnswerModal = useCallback(() => {
+    setIsWrongAnswerVisible(true);
+
+    // Анимация появления модалки
+    Animated.spring(wrongAnswerModalAnim, {
+      toValue: 1,
+      tension: 100,
+      friction: 8,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const hideWrongAnswerModal = useCallback(() => {
+    // Анимация скрытия модалки
+    Animated.spring(wrongAnswerModalAnim, {
+      toValue: 0,
+      tension: 100,
+      friction: 8,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsWrongAnswerVisible(false);
+    });
+  }, []);
+
+  const checkAnswer = useCallback(() => {
+    const userAnswer = selectedWords.join(' ');
+    const isCorrect =
+      userAnswer.replace(/\s+/g, ' ').trim() ===
+      sentence.ru.replace(/\s+/g, ' ').trim();
+
     if (isCorrect) {
-      setScore(score + 10);
-      setStreak(streak + 1);
-      setProgress(prev => ({ correct: prev.correct + 1, total: prev.total + 1 }));
+      setScore(prev => prev + 10);
+      setStreak(prev => prev + 1);
+      setProgress(prev => ({
+        correct: prev.correct + 1,
+        total: prev.total + 1,
+      }));
       playSuccessAnimation();
-      
+
       setTimeout(() => getNextSentence(tense!), 2000);
     } else {
       setStreak(0);
       setProgress(prev => ({ ...prev, total: prev.total + 1 }));
       Vibration.vibrate(300);
+      showWrongAnswerModal();
     }
-  };
+  }, [
+    selectedWords,
+    sentence.ru,
+    playSuccessAnimation,
+    tense,
+    showWrongAnswerModal,
+  ]);
 
-  const getNextSentence = (tense: TenseInterface): void => {
-    const { strategies, pronounts, auxiliaries, verbs } = tense;
-    const strategy = strategies[rndRangeNum(0, strategies.length)];
-    const pronountsList = pronounts[strategy[0]];
-    const pronoun = pronountsList[rndRangeNum(0, pronountsList.length)];
-    const auxiliariesList = auxiliaries[strategy[1]];
-    const auxiliary = auxiliariesList[rndRangeNum(0, auxiliariesList.length)];
-    const verbsList = verbs[strategy[2]];
-    const verb = verbsList[rndRangeNum(0, verbsList.length)];
+  const getNextSentence = useCallback(
+    (tense: TenseInterface): void => {
+      const { strategies, pronounts, auxiliaries, verbs } = tense;
+      const strategy = strategies[rndRangeNum(0, strategies.length)];
+      const pronountsList = pronounts[strategy[0]];
+      const pronoun = pronountsList[rndRangeNum(0, pronountsList.length)];
+      const auxiliariesList = auxiliaries[strategy[1]];
+      const auxiliary = auxiliariesList[rndRangeNum(0, auxiliariesList.length)];
+      const verbsList = verbs[strategy[2]];
+      const verb = verbsList[rndRangeNum(0, verbsList.length)];
 
-    setSentence({
-      en: buildSentence(getOnlyKey(pronoun), getOnlyKey(auxiliary), getOnlyKey(verb)),
-      ru: buildSentence(getOnlyValue(pronoun), getOnlyValue(auxiliary), getOnlyValue(verb)),
-    });
+      setSentence({
+        en: buildSentence(
+          getOnlyKey(pronoun),
+          getOnlyKey(auxiliary),
+          getOnlyKey(verb)
+        ),
+        ru: buildSentence(
+          getOnlyValue(pronoun),
+          getOnlyValue(auxiliary),
+          getOnlyValue(verb)
+        ),
+      });
 
-    clearAnswer();
-  };
+      clearAnswer();
+    },
+    [buildSentence, getOnlyKey, getOnlyValue, clearAnswer]
+  );
 
   // Функции для получения цветов
-  const getBackgroundGradient = () => {
+  const getBackgroundGradient = useCallback(() => {
     if (theme === 'light') {
       return ['#F8FAFF', '#F0F5FF', '#F8FAFF'];
     } else {
       return ['#0A0020', '#1A0030', '#0A0020'];
     }
-  };
+  }, [theme]);
 
-  const getParticleColor = () => {
+  const getParticleColor = useCallback(() => {
     return theme === 'light' ? colors.primary + '80' : '#663DFF';
-  };
+  }, [theme, colors.primary]);
 
-  const getSuccessGradientColors = () => {
+  const getSuccessGradientColors = useCallback(() => {
     if (theme === 'light') {
       return ['rgba(0, 212, 170, 0.9)', 'rgba(0, 184, 148, 0.95)'];
     } else {
       return [colors.accent, colors.accentLight || colors.accent];
     }
-  };
+  }, [theme, colors.accent, colors.accentLight]);
 
-  const possibleWords = getPossibleWords(sentence, tense);
-  const accuracy = progress.total > 0 ? Math.round((progress.correct / progress.total) * 100) : 0;
+  const getWrongAnswerGradientColors = useCallback(() => {
+    if (theme === 'light') {
+      return ['rgba(255, 64, 129, 0.9)', 'rgba(233, 30, 99, 0.95)'];
+    } else {
+      return ['rgba(244, 67, 54, 0.9)', 'rgba(229, 57, 53, 0.95)'];
+    }
+  }, [theme]);
+
+  const accuracy = useMemo(
+    () =>
+      progress.total > 0
+        ? Math.round((progress.correct / progress.total) * 100)
+        : 0,
+    [progress.correct, progress.total]
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      
       {/* Animated Background */}
-      <View style={styles.background} pointerEvents="none">
+      <View style={styles.background} pointerEvents='none'>
         <LinearGradient
           colors={getBackgroundGradient()}
           style={styles.backgroundGradient}
         />
-        
+
         {/* Floating Particles with unique keys */}
         {particles.map(particle => (
           <Animated.View
@@ -273,152 +704,236 @@ const TrainerComponent = (props: any): JSX.Element => {
                 top: particle.y,
                 opacity: glowAnim,
                 backgroundColor: getParticleColor(),
-              }
+              },
             ]}
-            pointerEvents="none"
+            pointerEvents='none'
           />
         ))}
       </View>
 
       <SafeAreaView style={{ flex: 1 }}>
-        <Animated.View style={[styles.container, { transform: [{ translateY: mainSlide }] }]}>
-          
+        <Animated.View
+          style={[styles.container, { transform: [{ translateY: mainSlide }] }]}
+        >
           {/* Premium Header */}
           <View style={styles.header}>
-            <TouchableOpacity 
-              style={styles.backButton} 
+            <TouchableOpacity
+              style={styles.backButton}
               onPress={navigateToMainPage}
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <LinearGradient
-                colors={theme === 'light' ? [colors.primaryLight, colors.primary] : ['#663DFF', '#8B5CFF']}
+                colors={
+                  theme === 'light'
+                    ? [colors.primaryLight, colors.primary]
+                    : ['#663DFF', '#8B5CFF']
+                }
                 style={styles.backGradient}
               >
-                <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+                <Ionicons name='chevron-back' size={24} color='#FFFFFF' />
                 <Text style={styles.backText}>Назад</Text>
               </LinearGradient>
             </TouchableOpacity>
-            
+
             <View style={styles.statsContainer}>
-              <View style={[
-                styles.statCard,
-                { 
-                  backgroundColor: theme === 'light' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                  borderColor: theme === 'light' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.2)'
-                }
-              ]}>
+              <View
+                style={[
+                  styles.statCard,
+                  {
+                    backgroundColor:
+                      theme === 'light'
+                        ? 'rgba(255, 255, 255, 0.2)'
+                        : 'rgba(255, 255, 255, 0.1)',
+                    borderColor:
+                      theme === 'light'
+                        ? 'rgba(255, 255, 255, 0.3)'
+                        : 'rgba(255, 255, 255, 0.2)',
+                  },
+                ]}
+              >
                 <Text style={styles.statValue}>{score}</Text>
-                <Text style={styles.statLabel}>SCORE</Text>
+                <Text style={styles.statLabel}>ОЧКИ</Text>
               </View>
-              <View style={[
-                styles.statCard, 
-                streak > 0 && styles.streakCard,
-                { 
-                  backgroundColor: streak > 0 
-                    ? (theme === 'light' ? 'rgba(255, 107, 53, 0.1)' : 'rgba(255, 107, 53, 0.2)')
-                    : (theme === 'light' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'),
-                  borderColor: streak > 0 
-                    ? (theme === 'light' ? 'rgba(255, 107, 53, 0.3)' : 'rgba(255, 107, 53, 0.4)')
-                    : (theme === 'light' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.2)')
-                }
-              ]}>
+              <View
+                style={[
+                  styles.statCard,
+                  streak > 0 && styles.streakCard,
+                  {
+                    backgroundColor:
+                      streak > 0
+                        ? theme === 'light'
+                          ? 'rgba(255, 107, 53, 0.1)'
+                          : 'rgba(255, 107, 53, 0.2)'
+                        : theme === 'light'
+                        ? 'rgba(255, 255, 255, 0.2)'
+                        : 'rgba(255, 255, 255, 0.1)',
+                    borderColor:
+                      streak > 0
+                        ? theme === 'light'
+                          ? 'rgba(255, 107, 53, 0.3)'
+                          : 'rgba(255, 107, 53, 0.4)'
+                        : theme === 'light'
+                        ? 'rgba(255, 255, 255, 0.3)'
+                        : 'rgba(255, 255, 255, 0.2)',
+                  },
+                ]}
+              >
                 <View style={styles.streakContent}>
                   <Text style={styles.statValue}>{streak}</Text>
-                  {streak >= 3 && <Ionicons name="flame" size={20} color="#FF6B35" />}
+                  {streak >= 3 && (
+                    <Ionicons name='flame' size={20} color='#FF6B35' />
+                  )}
                 </View>
-                <Text style={styles.statLabel}>STREAK</Text>
+                <Text style={styles.statLabel}>СЕРИЯ</Text>
               </View>
             </View>
           </View>
 
           {/* Main Content Area */}
-          <ScrollView 
+          <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            
             {/* Premium Sentence Card */}
-            <Animated.View style={[styles.sentenceCard, { 
-              transform: [{ scale: cardScale }]
-            }]}>
+            <Animated.View
+              style={[
+                styles.sentenceCard,
+                {
+                  transform: [{ scale: cardScale }],
+                },
+              ]}
+            >
               <LinearGradient
-                colors={theme === 'light' 
-                  ? ['rgba(240, 245, 255, 0.9)', 'rgba(230, 240, 255, 0.95)']
-                  : ['rgba(30, 30, 60, 0.9)', 'rgba(20, 20, 40, 0.95)']
+                colors={
+                  theme === 'light'
+                    ? ['rgba(240, 245, 255, 0.9)', 'rgba(230, 240, 255, 0.95)']
+                    : ['rgba(30, 30, 60, 0.9)', 'rgba(20, 20, 40, 0.95)']
                 }
                 style={styles.sentenceGradient}
               >
                 {/* Card Glow Border */}
-                <Animated.View 
+                <Animated.View
                   style={[
-                    styles.cardGlow, 
-                    { 
+                    styles.cardGlow,
+                    {
                       opacity: glowAnim,
-                      borderColor: colors.primary
-                    }
-                  ]} 
-                  pointerEvents="none"
+                      borderColor: colors.primary,
+                    },
+                  ]}
+                  pointerEvents='none'
                 />
-                
+
                 <View style={styles.cardContent}>
                   <View style={styles.cardHeader}>
-                    <View style={[
-                      styles.tenseBadge,
-                      {
-                        backgroundColor: theme === 'light' ? 'rgba(102, 61, 255, 0.1)' : 'rgba(102, 61, 255, 0.2)',
-                        borderColor: theme === 'light' ? 'rgba(102, 61, 255, 0.3)' : 'rgba(102, 61, 255, 0.5)'
-                      }
-                    ]}>
-                      <Text style={[
-                        styles.tenseName,
-                        { color: theme === 'light' ? colors.primary : '#8B5CFF' }
-                      ]}>
-                        {tense?.name || "PRESENT SIMPLE"}
+                    <View
+                      style={[
+                        styles.tenseBadge,
+                        {
+                          backgroundColor:
+                            theme === 'light'
+                              ? 'rgba(102, 61, 255, 0.1)'
+                              : 'rgba(102, 61, 255, 0.2)',
+                          borderColor:
+                            theme === 'light'
+                              ? 'rgba(102, 61, 255, 0.3)'
+                              : 'rgba(102, 61, 255, 0.5)',
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.tenseName,
+                          {
+                            color:
+                              theme === 'light' ? colors.primary : '#8B5CFF',
+                          },
+                        ]}
+                      >
+                        {tense?.name || 'PRESENT SIMPLE'}
                       </Text>
                     </View>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.hintButton}
                       onPress={() => setIsAnswerVisible(true)}
                       activeOpacity={0.7}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Ionicons name="star" size={24} color={theme === 'light' ? colors.primary : '#8B5CFF'} />
+                      <Ionicons
+                        name='star'
+                        size={24}
+                        color={theme === 'light' ? colors.primary : '#8B5CFF'}
+                      />
                     </TouchableOpacity>
                   </View>
-                  
-                  <Text style={[styles.englishText, { color: colors.text }]}>{sentence.en}</Text>
-                  
+
+                  <Text style={[styles.englishText, { color: colors.text }]}>
+                    {sentence.en}
+                  </Text>
+
                   <View style={styles.statsRow}>
                     <View style={styles.accuracyMeter}>
-                      <View style={[
-                        styles.accuracyBackground,
-                        { backgroundColor: theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)' }
-                      ]}>
-                        <View style={[
-                          styles.accuracyFill, 
-                          { 
-                            width: `${accuracy}%`,
-                            backgroundColor: accuracy >= 70 ? '#00D4AA' : accuracy >= 40 ? '#FFB300' : '#FF4081'
-                          }
-                        ]} />
+                      <View
+                        style={[
+                          styles.accuracyBackground,
+                          {
+                            backgroundColor:
+                              theme === 'light'
+                                ? 'rgba(0, 0, 0, 0.1)'
+                                : 'rgba(255, 255, 255, 0.1)',
+                          },
+                        ]}
+                      >
+                        <View
+                          style={[
+                            styles.accuracyFill,
+                            {
+                              width: `${accuracy}%`,
+                              backgroundColor:
+                                accuracy >= 70
+                                  ? '#00D4AA'
+                                  : accuracy >= 40
+                                  ? '#FFB300'
+                                  : '#FF4081',
+                            },
+                          ]}
+                        />
                       </View>
-                      <Text style={[
-                        styles.accuracyText,
-                        { color: theme === 'light' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)' }
-                      ]}>
+                      <Text
+                        style={[
+                          styles.accuracyText,
+                          {
+                            color:
+                              theme === 'light'
+                                ? 'rgba(0, 0, 0, 0.7)'
+                                : 'rgba(255, 255, 255, 0.7)',
+                          },
+                        ]}
+                      >
                         {accuracy}% Точность
                       </Text>
                     </View>
-                    <View style={[
-                      styles.progressCircle,
-                      {
-                        backgroundColor: theme === 'light' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                        borderColor: theme === 'light' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)'
-                      }
-                    ]}>
-                      <Text style={[styles.progressCount, { color: colors.text }]}>{progress.correct}/{progress.total}</Text>
+                    <View
+                      style={[
+                        styles.progressCircle,
+                        {
+                          backgroundColor:
+                            theme === 'light'
+                              ? 'rgba(255, 255, 255, 0.2)'
+                              : 'rgba(255, 255, 255, 0.1)',
+                          borderColor:
+                            theme === 'light'
+                              ? 'rgba(0, 0, 0, 0.2)'
+                              : 'rgba(255, 255, 255, 0.2)',
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[styles.progressCount, { color: colors.text }]}
+                      >
+                        {progress.correct}/{progress.total}
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -427,31 +942,57 @@ const TrainerComponent = (props: any): JSX.Element => {
 
             {/* Build Area */}
             <View style={styles.buildSection}>
-              <Text style={[
-                styles.sectionTitle,
-                { color: theme === 'light' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)' }
-              ]}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  {
+                    color:
+                      theme === 'light'
+                        ? 'rgba(0, 0, 0, 0.6)'
+                        : 'rgba(255, 255, 255, 0.6)',
+                  },
+                ]}
+              >
                 Составьте предложение
               </Text>
-              
-              <View style={[
-                styles.selectedArea,
-                {
-                  backgroundColor: theme === 'light' ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-                  borderColor: theme === 'light' ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.1)'
-                }
-              ]}>
+
+              <View
+                style={[
+                  styles.selectedArea,
+                  {
+                    backgroundColor:
+                      theme === 'light'
+                        ? 'rgba(0, 0, 0, 0.05)'
+                        : 'rgba(255, 255, 255, 0.05)',
+                    borderColor:
+                      theme === 'light'
+                        ? 'rgba(0, 0, 0, 0.1)'
+                        : 'rgba(255, 255, 255, 0.1)',
+                  },
+                ]}
+              >
                 {selectedWords.length === 0 ? (
                   <View style={styles.placeholder}>
-                    <Ionicons 
-                      name="arrow-down" 
-                      size={32} 
-                      color={theme === 'light' ? 'rgba(102, 61, 255, 0.3)' : 'rgba(139, 92, 255, 0.5)'} 
+                    <Ionicons
+                      name='arrow-down'
+                      size={32}
+                      color={
+                        theme === 'light'
+                          ? 'rgba(102, 61, 255, 0.3)'
+                          : 'rgba(139, 92, 255, 0.5)'
+                      }
                     />
-                    <Text style={[
-                      styles.placeholderText,
-                      { color: theme === 'light' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)' }
-                    ]}>
+                    <Text
+                      style={[
+                        styles.placeholderText,
+                        {
+                          color:
+                            theme === 'light'
+                              ? 'rgba(0, 0, 0, 0.3)'
+                              : 'rgba(255, 255, 255, 0.3)',
+                        },
+                      ]}
+                    >
                       Выберите слова чтобы составить предложение
                     </Text>
                   </View>
@@ -459,17 +1000,25 @@ const TrainerComponent = (props: any): JSX.Element => {
                   <View style={styles.selectedWordsRow}>
                     {selectedWords.map((word, index) => (
                       <TouchableOpacity
-                        key={`selected-${index}-${word}`} // Уникальный ключ для выбранных слов
+                        key={`selected-${index}-${word}`}
                         style={styles.selectedWordChip}
                         onPress={() => handleWordDeselect(index)}
                         activeOpacity={0.7}
                       >
                         <LinearGradient
-                          colors={theme === 'light' ? ['#667eea', '#764ba2'] : ['#663DFF', '#8B5CFF']}
+                          colors={
+                            theme === 'light'
+                              ? ['#667eea', '#764ba2']
+                              : ['#663DFF', '#8B5CFF']
+                          }
                           style={styles.selectedWordGradient}
                         >
                           <Text style={styles.selectedWordText}>{word}</Text>
-                          <Ionicons name="close-circle" size={18} color="#FFFFFF" />
+                          <Ionicons
+                            name='close-circle'
+                            size={18}
+                            color='#FFFFFF'
+                          />
                         </LinearGradient>
                       </TouchableOpacity>
                     ))}
@@ -479,38 +1028,54 @@ const TrainerComponent = (props: any): JSX.Element => {
 
               {selectedWords.length > 0 && (
                 <View style={styles.actionRow}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[
                       styles.secondaryButton,
                       {
-                        backgroundColor: theme === 'light' ? 'rgba(139, 92, 255, 0.05)' : 'rgba(139, 92, 255, 0.1)',
-                        borderColor: theme === 'light' ? 'rgba(139, 92, 255, 0.2)' : 'rgba(139, 92, 255, 0.3)'
-                      }
+                        backgroundColor:
+                          theme === 'light'
+                            ? 'rgba(139, 92, 255, 0.05)'
+                            : 'rgba(139, 92, 255, 0.1)',
+                        borderColor:
+                          theme === 'light'
+                            ? 'rgba(139, 92, 255, 0.2)'
+                            : 'rgba(139, 92, 255, 0.3)',
+                      },
                     ]}
                     onPress={clearAnswer}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="refresh" size={20} color={theme === 'light' ? '#667eea' : '#8B5CFF'} />
-                    <Text style={[
-                      styles.secondaryText,
-                      { color: theme === 'light' ? '#667eea' : '#8B5CFF' }
-                    ]}>
+                    <Ionicons
+                      name='refresh'
+                      size={20}
+                      color={theme === 'light' ? '#667eea' : '#8B5CFF'}
+                    />
+                    <Text
+                      style={[
+                        styles.secondaryText,
+                        { color: theme === 'light' ? '#667eea' : '#8B5CFF' },
+                      ]}
+                    >
                       Очистить
                     </Text>
                   </TouchableOpacity>
-                  
-                  <TouchableOpacity 
+
+                  <TouchableOpacity
                     style={styles.primaryButton}
                     onPress={checkAnswer}
                     activeOpacity={0.8}
                   >
                     <LinearGradient
-                      colors={theme === 'light' ? ['#00B894', '#00D4AA'] : ['#00D4AA', '#00B894']}
+                      colors={
+                        theme === 'light'
+                          ? ['#00B894', '#00D4AA']
+                          : ['#00D4AA', '#00B894']
+                      }
                       style={styles.primaryGradient}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                     >
-                      <Ionicons name="checkmark-done" size={24} color="#000" />
+                      <Ionicons name='checkmark-done' size={24} color='#000' />
                       <Text style={styles.primaryText}>Проверить</Text>
                     </LinearGradient>
                   </TouchableOpacity>
@@ -520,50 +1085,82 @@ const TrainerComponent = (props: any): JSX.Element => {
 
             {/* Words Grid */}
             <View style={styles.wordsSection}>
-              <Text style={[
-                styles.sectionTitle,
-                { color: theme === 'light' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)' }
-              ]}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  {
+                    color:
+                      theme === 'light'
+                        ? 'rgba(0, 0, 0, 0.6)'
+                        : 'rgba(255, 255, 255, 0.6)',
+                  },
+                ]}
+              >
                 Доступные слова
               </Text>
-              
+
               <View style={styles.wordsGrid}>
                 {possibleWords.map((word, index) => {
                   const isSelected = selectedWords.includes(word);
                   return (
                     <TouchableOpacity
-                      key={`word-${index}-${word}`} // Уникальный ключ для слов
+                      key={`word-${index}-${word}`}
                       style={[
                         styles.wordPill,
                         {
-                          backgroundColor: theme === 'light' 
-                            ? (isSelected ? 'rgba(102, 61, 255, 0.1)' : 'rgba(255, 255, 255, 0.2)')
-                            : (isSelected ? 'rgba(102, 61, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'),
-                          borderColor: theme === 'light' 
-                            ? (isSelected ? 'rgba(102, 61, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)')
-                            : (isSelected ? 'rgba(102, 61, 255, 0.5)' : 'rgba(255, 255, 255, 0.2)')
-                        }
+                          backgroundColor:
+                            theme === 'light'
+                              ? isSelected
+                                ? 'rgba(102, 61, 255, 0.1)'
+                                : 'rgba(255, 255, 255, 0.2)'
+                              : isSelected
+                              ? 'rgba(102, 61, 255, 0.2)'
+                              : 'rgba(255, 255, 255, 0.1)',
+                          borderColor:
+                            theme === 'light'
+                              ? isSelected
+                                ? 'rgba(102, 61, 255, 0.3)'
+                                : 'rgba(0, 0, 0, 0.2)'
+                              : isSelected
+                              ? 'rgba(102, 61, 255, 0.5)'
+                              : 'rgba(255, 255, 255, 0.2)',
+                        },
                       ]}
                       onPress={() => handleWordSelect(word)}
                       disabled={isSelected}
                       activeOpacity={0.6}
                     >
-                      <Text style={[
-                        styles.wordPillText,
-                        { 
-                          color: isSelected 
-                            ? (theme === 'light' ? 'rgba(102, 61, 255, 0.7)' : 'rgba(255, 255, 255, 0.5)') 
-                            : colors.text 
-                        }
-                      ]}>
+                      <Text
+                        style={[
+                          styles.wordPillText,
+                          {
+                            color: isSelected
+                              ? theme === 'light'
+                                ? 'rgba(102, 61, 255, 0.7)'
+                                : 'rgba(255, 255, 255, 0.5)'
+                              : colors.text,
+                          },
+                        ]}
+                      >
                         {word}
                       </Text>
                       {isSelected && (
-                        <View style={[
-                          styles.selectedIndicator,
-                          { backgroundColor: theme === 'light' ? 'rgba(0, 212, 170, 0.2)' : 'rgba(0, 212, 170, 0.2)' }
-                        ]}>
-                          <Ionicons name="checkmark" size={16} color="#00D4AA" />
+                        <View
+                          style={[
+                            styles.selectedIndicator,
+                            {
+                              backgroundColor:
+                                theme === 'light'
+                                  ? 'rgba(0, 212, 170, 0.2)'
+                                  : 'rgba(0, 212, 170, 0.2)',
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name='checkmark'
+                            size={16}
+                            color='#00D4AA'
+                          />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -571,67 +1168,175 @@ const TrainerComponent = (props: any): JSX.Element => {
                 })}
               </View>
             </View>
-
           </ScrollView>
-
         </Animated.View>
 
         {/* Epic Success Overlay */}
-        <Animated.View 
-          style={[styles.successOverlay, { opacity: successAnim }]} 
-          pointerEvents="none"
+        <Animated.View
+          style={[styles.successOverlay, { opacity: successAnim }]}
+          pointerEvents='none'
         >
           <LinearGradient
             colors={getSuccessGradientColors()}
             style={styles.successCard}
           >
             <View style={styles.successIcon}>
-              <Ionicons name="trophy" size={80} color="#000" />
+              <Ionicons name='trophy' size={80} color='#000' />
             </View>
             <Text style={styles.successTitle}>Великолепно!</Text>
             <Text style={styles.successScore}>+10 XP</Text>
             <View style={styles.successStreak}>
-              <Ionicons name="flash" size={20} color="#000" />
+              <Ionicons name='flash' size={20} color='#000' />
               <Text style={styles.successStreakText}>Попытка: {streak}</Text>
             </View>
           </LinearGradient>
         </Animated.View>
 
-        {/* Premium Modal */}
+        {/* Wrong Answer Modal */}
+        {isWrongAnswerVisible && (
+          <View style={styles.wrongAnswerOverlay}>
+            <TouchableOpacity
+              style={styles.wrongAnswerOverlayTouchable}
+              onPress={hideWrongAnswerModal}
+              activeOpacity={1}
+            >
+              <Animated.View
+                style={[
+                  styles.wrongAnswerModal,
+                  {
+                    transform: [{ scale: wrongAnswerModalAnim }],
+                    opacity: wrongAnswerModalAnim,
+                  },
+                ]}
+              >
+                <LinearGradient
+                  colors={getWrongAnswerGradientColors()}
+                  style={styles.wrongAnswerGradient}
+                >
+                  <View style={styles.wrongAnswerHeader}>
+                    <Text style={styles.wrongAnswerTitle}>Ответ неверный</Text>
+                    <TouchableOpacity
+                      style={styles.wrongAnswerClose}
+                      onPress={hideWrongAnswerModal}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                      <Ionicons name='close' size={28} color='#FFFFFF' />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.wrongAnswerContent}>
+                    <Ionicons
+                      name='sad-outline'
+                      size={60}
+                      color='#FFFFFF'
+                      style={styles.wrongAnswerIcon}
+                    />
+                    <Text style={styles.wrongAnswerText}>
+                      Ваш ответ: {selectedWords.join(' ')}
+                    </Text>
+                    <Text style={styles.correctAnswerText}>
+                      Правильный ответ: {sentence.ru}
+                    </Text>
+
+                    <View style={styles.wrongAnswerHint}>
+                      <Ionicons name='bulb-outline' size={24} color='#FFD600' />
+                      <Text style={styles.wrongAnswerHintText}>
+                        Обратите внимание на порядок слов и грамматические формы
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* <View style={styles.wrongAnswerButtons}>
+                    <TouchableOpacity 
+                      style={[styles.wrongAnswerButton, styles.retryButton]}
+                      onPress={clearAnswer}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="refresh" size={22} color="#FFFFFF" />
+                      <Text style={styles.wrongAnswerButtonText}>Попробовать снова</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={[styles.wrongAnswerButton, styles.showAnswerButton]}
+                      onPress={() => {
+                        hideWrongAnswerModal();
+                        setIsAnswerVisible(true);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="eye" size={22} color="#FFFFFF" />
+                      <Text style={styles.wrongAnswerButtonText}>Посмотреть ответ</Text>
+                    </TouchableOpacity>
+                  </View> */}
+                </LinearGradient>
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Premium Modal для правильного ответа */}
         {isAnswerVisible && (
           <View style={styles.modalOverlay}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.modalOverlayTouchable}
               onPress={() => setIsAnswerVisible(false)}
               activeOpacity={1}
             >
-              <Animated.View style={[styles.modalCard, { transform: [{ scale: cardScale }] }]}>
+              <Animated.View
+                style={[
+                  styles.modalCard,
+                  { transform: [{ scale: cardScale }] },
+                ]}
+              >
                 <LinearGradient
-                  colors={theme === 'light' 
-                    ? ['rgba(240, 245, 255, 0.95)', 'rgba(230, 240, 255, 0.98)']
-                    : ['rgba(30, 30, 60, 0.95)', 'rgba(20, 20, 40, 0.98)']
+                  colors={
+                    theme === 'light'
+                      ? [
+                          'rgba(240, 245, 255, 0.95)',
+                          'rgba(230, 240, 255, 0.98)',
+                        ]
+                      : ['rgba(30, 30, 60, 0.95)', 'rgba(20, 20, 40, 0.98)']
                   }
                   style={styles.modalGradient}
                 >
                   <View style={styles.modalHeader}>
-                    <Text style={[styles.modalTitle, { color: colors.text }]}>CORRECT TRANSLATION</Text>
-                    <TouchableOpacity 
+                    <Text style={[styles.modalTitle, { color: colors.text }]}>
+                      CORRECT TRANSLATION
+                    </Text>
+                    <TouchableOpacity
                       style={styles.modalClose}
                       onPress={() => setIsAnswerVisible(false)}
                       activeOpacity={0.7}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Ionicons name="close" size={24} color={theme === 'light' ? colors.primary : '#8B5CFF'} />
+                      <Ionicons
+                        name='close'
+                        size={24}
+                        color={theme === 'light' ? colors.primary : '#8B5CFF'}
+                      />
                     </TouchableOpacity>
                   </View>
-                  
+
                   <View style={styles.modalContent}>
-                    <Ionicons name="bulb" size={48} color={theme === 'light' ? colors.primary : '#8B5CFF'} />
-                    <Text style={[styles.modalAnswer, { color: colors.text }]}>{sentence.ru}</Text>
+                    <Ionicons
+                      name='bulb'
+                      size={48}
+                      color={theme === 'light' ? colors.primary : '#8B5CFF'}
+                    />
+                    <Text style={[styles.modalAnswer, { color: colors.text }]}>
+                      {sentence.ru}
+                    </Text>
                   </View>
-                  
-                  <TouchableOpacity 
-                    style={[styles.modalButton, { backgroundColor: theme === 'light' ? colors.primary : '#8B5CFF' }]}
+
+                  <TouchableOpacity
+                    style={[
+                      styles.modalButton,
+                      {
+                        backgroundColor:
+                          theme === 'light' ? colors.primary : '#8B5CFF',
+                      },
+                    ]}
                     onPress={() => setIsAnswerVisible(false)}
                     activeOpacity={0.7}
                   >
@@ -646,8 +1351,6 @@ const TrainerComponent = (props: any): JSX.Element => {
     </View>
   );
 };
-
-// Стили остаются такими же как в предыдущем коде...
 
 const styles = StyleSheet.create({
   background: {
@@ -705,6 +1408,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 16,
     borderWidth: 1,
+  },
+  streakCard: {
+    borderWidth: 1.5,
   },
   streakContent: {
     flexDirection: 'row',
@@ -968,6 +1674,119 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  // Wrong Answer Modal Styles
+  wrongAnswerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000,
+  },
+  wrongAnswerOverlayTouchable: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  wrongAnswerModal: {
+    width: '85%',
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#FF4081',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.4,
+    shadowRadius: 30,
+    elevation: 20,
+  },
+  wrongAnswerGradient: {
+    padding: 24,
+  },
+  wrongAnswerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  wrongAnswerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    flex: 1,
+    textAlign: 'center',
+  },
+  wrongAnswerClose: {
+    padding: 4,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  wrongAnswerContent: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  wrongAnswerIcon: {
+    marginBottom: 20,
+  },
+  wrongAnswerText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    padding: 12,
+    borderRadius: 12,
+    width: '100%',
+  },
+  correctAnswerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFD600',
+    textAlign: 'center',
+    marginBottom: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    padding: 12,
+    borderRadius: 12,
+    width: '100%',
+  },
+  wrongAnswerHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 12,
+    borderRadius: 12,
+    width: '100%',
+    gap: 8,
+  },
+  wrongAnswerHintText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    flex: 1,
+  },
+  wrongAnswerButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  wrongAnswerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    flex: 1,
+  },
+  retryButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  showAnswerButton: {
+    backgroundColor: 'rgba(255, 214, 0, 0.3)',
+  },
+  wrongAnswerButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  // Original modal for correct answer
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
