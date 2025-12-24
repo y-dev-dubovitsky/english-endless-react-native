@@ -18,19 +18,19 @@ const InfoScreen = (): JSX.Element => {
   const { colors, theme } = useTheme();
 
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(50)).current;
-  const scaleAnim = React.useRef(new Animated.Value(0.9)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
+  const scaleAnim = React.useRef(new Animated.Value(0.95)).current;
 
   React.useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 1000,
+        duration: 800,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 800,
+        duration: 700,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
@@ -109,40 +109,19 @@ const InfoScreen = (): JSX.Element => {
   const getShadowStyle = () => {
     if (theme === 'light') {
       return {
-        shadowColor: 'rgba(0, 0, 0, 0.08)',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        elevation: 8,
+        shadowColor: 'rgba(0, 0, 0, 0.06)',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
       };
     } else {
       return {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.4,
-        shadowRadius: 20,
-        elevation: 15,
-      };
-    }
-  };
-
-  // Функция для получения стилей тени заголовка
-  const getHeaderShadowStyle = () => {
-    if (theme === 'light') {
-      return {
-        shadowColor: colors.primary + '40',
         shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 20,
-        elevation: 12,
-      };
-    } else {
-      return {
-        shadowColor: colors.primary,
-        shadowOffset: { width: 0, height: 15 },
-        shadowOpacity: 0.6,
-        shadowRadius: 25,
-        elevation: 20,
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
+        elevation: 10,
       };
     }
   };
@@ -151,26 +130,26 @@ const InfoScreen = (): JSX.Element => {
   const getCardShadowStyle = () => {
     if (theme === 'light') {
       return {
-        shadowColor: 'rgba(0, 0, 0, 0.06)',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
+        shadowColor: 'rgba(0, 0, 0, 0.05)',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 3,
       };
     } else {
       return {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
-        elevation: 10,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+        elevation: 8,
       };
     }
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Улучшенный анимированный фон */}
+      {/* Анимированный фон */}
       <View style={styles.background}>
         <LinearGradient
           colors={getBackgroundGradient()}
@@ -230,7 +209,7 @@ const InfoScreen = (): JSX.Element => {
         {/* Анимированные частицы - только для темной темы */}
         {theme === 'dark' && (
           <View style={styles.particlesContainer}>
-            {[...Array(20)].map((_, i) => (
+            {[...Array(15)].map((_, i) => (
               <Animated.View
                 key={i}
                 style={[
@@ -240,14 +219,14 @@ const InfoScreen = (): JSX.Element => {
                     top: Math.random() * height,
                     opacity: fadeAnim.interpolate({
                       inputRange: [0, 1],
-                      outputRange: [0, 0.6],
+                      outputRange: [0, 0.4],
                     }),
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.6)',
                     transform: [
                       {
                         scale: fadeAnim.interpolate({
                           inputRange: [0, 1],
-                          outputRange: [0.3, 1],
+                          outputRange: [0.2, 0.8],
                         }),
                       },
                     ],
@@ -260,7 +239,7 @@ const InfoScreen = (): JSX.Element => {
       </View>
 
       <View style={styles.container}>
-        {/* Улучшенный заголовок */}
+        {/* Уменьшенный заголовок без иконки */}
         <Animated.View
           style={[
             styles.headerSection,
@@ -271,50 +250,13 @@ const InfoScreen = (): JSX.Element => {
                 {
                   scale: fadeAnim.interpolate({
                     inputRange: [0, 1],
-                    outputRange: [0.8, 1],
+                    outputRange: [0.9, 1],
                   }),
                 },
               ],
             },
           ]}
         >
-          <Animated.View
-            style={[
-              styles.iconContainer,
-              {
-                transform: [
-                  {
-                    rotate: fadeAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['0deg', '360deg'],
-                    }),
-                  },
-                ],
-                ...getHeaderShadowStyle(),
-              },
-            ]}
-          >
-            <LinearGradient
-              colors={
-                theme === 'light'
-                  ? ['#6366F1', '#8B5CF6', '#00D4AA']
-                  : ['#663DFF', '#8B5CFF', '#00D4AA']
-              }
-              style={[
-                styles.iconGradient,
-                {
-                  borderColor:
-                    theme === 'light'
-                      ? 'rgba(255, 255, 255, 0.3)'
-                      : 'rgba(255, 255, 255, 0.2)',
-                },
-              ]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Ionicons name='infinite' size={42} color='#FFFFFF' />
-            </LinearGradient>
-          </Animated.View>
           <Text
             style={[
               styles.mainTitle,
@@ -322,21 +264,21 @@ const InfoScreen = (): JSX.Element => {
                 color: colors.text,
                 textShadowColor:
                   theme === 'light'
-                    ? 'rgba(99, 102, 241, 0.2)'
-                    : 'rgba(102, 61, 255, 0.5)',
+                    ? 'rgba(99, 102, 241, 0.15)'
+                    : 'rgba(102, 61, 255, 0.3)',
                 textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: theme === 'light' ? 8 : 10,
+                textShadowRadius: theme === 'light' ? 6 : 8,
               },
             ]}
           >
-            ДЕРЖИ ГРАММАТИКУ
+            Держи Грамматику
           </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Раскрой свой языковой потенциал
           </Text>
         </Animated.View>
 
-        {/* Улучшенный контент - Без карточек, прямой скролл */}
+        {/* Контент */}
         <Animated.View
           style={[
             styles.contentContainer,
@@ -361,7 +303,7 @@ const InfoScreen = (): JSX.Element => {
                   }
                   style={[styles.sectionIcon, getShadowStyle()]}
                 >
-                  <Ionicons name='star' size={20} color='#FFFFFF' />
+                  <Ionicons name='star' size={18} color='#FFFFFF' />
                 </LinearGradient>
                 <Text
                   style={[
@@ -370,10 +312,10 @@ const InfoScreen = (): JSX.Element => {
                       color: colors.text,
                       textShadowColor:
                         theme === 'light'
-                          ? 'rgba(0, 0, 0, 0.05)'
-                          : 'rgba(255, 255, 255, 0.1)',
+                          ? 'rgba(0, 0, 0, 0.03)'
+                          : 'rgba(255, 255, 255, 0.08)',
                       textShadowOffset: { width: 0, height: 0 },
-                      textShadowRadius: theme === 'light' ? 3 : 5,
+                      textShadowRadius: theme === 'light' ? 2 : 4,
                     },
                   ]}
                 >
@@ -398,7 +340,7 @@ const InfoScreen = (): JSX.Element => {
                 >
                   <Ionicons
                     name='flash'
-                    size={20}
+                    size={18}
                     color={theme === 'light' ? '#000' : '#FFF'}
                   />
                 </LinearGradient>
@@ -409,10 +351,10 @@ const InfoScreen = (): JSX.Element => {
                       color: colors.text,
                       textShadowColor:
                         theme === 'light'
-                          ? 'rgba(0, 0, 0, 0.05)'
-                          : 'rgba(255, 255, 255, 0.1)',
+                          ? 'rgba(0, 0, 0, 0.03)'
+                          : 'rgba(255, 255, 255, 0.08)',
                       textShadowOffset: { width: 0, height: 0 },
-                      textShadowRadius: theme === 'light' ? 3 : 5,
+                      textShadowRadius: theme === 'light' ? 2 : 4,
                     },
                   ]}
                 >
@@ -432,7 +374,7 @@ const InfoScreen = (): JSX.Element => {
                           {
                             translateY: fadeAnim.interpolate({
                               inputRange: [0, 1],
-                              outputRange: [30, 0],
+                              outputRange: [20, 0],
                             }),
                           },
                         ],
@@ -448,8 +390,8 @@ const InfoScreen = (): JSX.Element => {
                               'rgba(255, 255, 255, 0.7)',
                             ]
                           : [
-                              'rgba(255, 255, 255, 0.1)',
-                              'rgba(255, 255, 255, 0.05)',
+                              'rgba(255, 255, 255, 0.08)',
+                              'rgba(255, 255, 255, 0.04)',
                             ]
                       }
                       style={[
@@ -457,8 +399,8 @@ const InfoScreen = (): JSX.Element => {
                         {
                           borderColor:
                             theme === 'light'
-                              ? 'rgba(0, 0, 0, 0.05)'
-                              : 'rgba(255, 255, 255, 0.1)',
+                              ? 'rgba(0, 0, 0, 0.04)'
+                              : 'rgba(255, 255, 255, 0.08)',
                           backgroundColor:
                             theme === 'light'
                               ? colors.backgroundSecondary
@@ -471,7 +413,7 @@ const InfoScreen = (): JSX.Element => {
                       <View style={styles.advantageIconContainer}>
                         <Ionicons
                           name={advantage.icon}
-                          size={28}
+                          size={26}
                           color={advantage.color}
                         />
                       </View>
@@ -501,7 +443,7 @@ const InfoScreen = (): JSX.Element => {
                   colors={['#FF6B35', '#FF4081']}
                   style={[styles.sectionIcon, getShadowStyle()]}
                 >
-                  <Ionicons name='trophy' size={20} color='#FFFFFF' />
+                  <Ionicons name='trophy' size={18} color='#FFFFFF' />
                 </LinearGradient>
                 <Text
                   style={[
@@ -510,10 +452,10 @@ const InfoScreen = (): JSX.Element => {
                       color: colors.text,
                       textShadowColor:
                         theme === 'light'
-                          ? 'rgba(0, 0, 0, 0.05)'
-                          : 'rgba(255, 255, 255, 0.1)',
+                          ? 'rgba(0, 0, 0, 0.03)'
+                          : 'rgba(255, 255, 255, 0.08)',
                       textShadowOffset: { width: 0, height: 0 },
-                      textShadowRadius: theme === 'light' ? 3 : 5,
+                      textShadowRadius: theme === 'light' ? 2 : 4,
                     },
                   ]}
                 >
@@ -535,8 +477,8 @@ const InfoScreen = (): JSX.Element => {
                     styles.statItem,
                     theme === 'light' && {
                       backgroundColor: 'rgba(0, 212, 170, 0.05)',
-                      padding: 12,
-                      borderRadius: 12,
+                      padding: 10,
+                      borderRadius: 10,
                     },
                   ]}
                 >
@@ -554,8 +496,8 @@ const InfoScreen = (): JSX.Element => {
                     styles.statItem,
                     theme === 'light' && {
                       backgroundColor: 'rgba(0, 212, 170, 0.05)',
-                      padding: 12,
-                      borderRadius: 12,
+                      padding: 10,
+                      borderRadius: 10,
                     },
                   ]}
                 >
@@ -573,8 +515,8 @@ const InfoScreen = (): JSX.Element => {
                     styles.statItem,
                     theme === 'light' && {
                       backgroundColor: 'rgba(0, 212, 170, 0.05)',
-                      padding: 12,
-                      borderRadius: 12,
+                      padding: 10,
+                      borderRadius: 10,
                     },
                   ]}
                 >
@@ -592,7 +534,7 @@ const InfoScreen = (): JSX.Element => {
           </ScrollView>
         </Animated.View>
 
-        {/* Улучшенный футер */}
+        {/* Футер */}
         <Animated.View
           style={[
             styles.footer,
@@ -624,189 +566,178 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '10%',
     right: '15%',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   floatingOrb2: {
     position: 'absolute',
     bottom: '20%',
     left: '10%',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
   },
   floatingOrb3: {
     position: 'absolute',
     top: '35%',
     left: '75%',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
   },
   floatingOrb4: {
     position: 'absolute',
     bottom: '40%',
     right: '5%',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   particlesContainer: {
     ...StyleSheet.absoluteFillObject,
   },
   particle: {
     position: 'absolute',
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
   },
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 5,
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
     paddingTop: 10,
   },
-  iconContainer: {
-    marginBottom: 20,
-  },
-  iconGradient: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-  },
   mainTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    letterSpacing: 3,
-    marginBottom: 8,
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: 2,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
-    letterSpacing: 1.5,
+    letterSpacing: 1,
   },
   contentContainer: {
     flex: 1,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   scrollContent: {
-    paddingBottom: 20,
+    paddingBottom: 15,
   },
   section: {
-    marginBottom: 35,
+    marginBottom: 28,
   },
   welcomeSection: {
-    marginBottom: 40,
+    marginBottom: 32,
   },
   resultsSection: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 20,
+    gap: 10,
+    marginBottom: 16,
   },
   sectionIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 1.2,
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   welcomeText: {
-    fontSize: 17,
-    lineHeight: 26,
+    fontSize: 15,
+    lineHeight: 22,
     fontWeight: '400',
     textAlign: 'center',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   resultsText: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 14,
+    lineHeight: 21,
     fontWeight: '400',
-    marginBottom: 25,
+    marginBottom: 20,
     textAlign: 'center',
   },
   advantagesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 15,
+    gap: 12,
   },
   advantageCard: {
-    width: (width - 55) / 2,
-    marginBottom: 15,
-    borderRadius: 20,
+    width: (width - 52) / 2,
+    marginBottom: 12,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   advantageGradient: {
-    padding: 20,
-    borderRadius: 20,
+    padding: 16,
+    borderRadius: 16,
     borderWidth: 1,
-    minHeight: 160,
+    minHeight: 150,
   },
   advantageIconContainer: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   advantageTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 8,
-    letterSpacing: 0.5,
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 6,
+    letterSpacing: 0.4,
   },
   advantageDescription: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '400',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 15,
+    marginTop: 12,
   },
   statItem: {
     alignItems: 'center',
-    padding: 8,
+    padding: 6,
   },
   statNumber: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 4,
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 3,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   footer: {
     alignItems: 'center',
-    paddingBottom: 25,
-    paddingTop: 10,
+    paddingBottom: 20,
+    paddingTop: 8,
   },
   footerText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    marginBottom: 6,
-    letterSpacing: 1,
+    marginBottom: 4,
+    letterSpacing: 0.8,
   },
   versionText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '500',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
 });
 

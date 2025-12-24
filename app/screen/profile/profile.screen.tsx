@@ -11,7 +11,7 @@ const { width, height } = Dimensions.get('window');
 const ProfileScreen = (): JSX.Element => {
   const { theme, colors, setTheme } = useTheme();
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
-  const slideAnim = React.useRef(new Animated.Value(50)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
   const glowAnim = React.useRef(new Animated.Value(0)).current;
   
   // Particles state
@@ -25,7 +25,7 @@ const ProfileScreen = (): JSX.Element => {
 
   React.useEffect(() => {
     // Создаем частицы
-    const newParticles = Array.from({ length: 20 }, (_, i) => ({
+    const newParticles = Array.from({ length: 15 }, (_, i) => ({
       id: i,
       x: Math.random() * width,
       y: Math.random() * height,
@@ -38,12 +38,12 @@ const ProfileScreen = (): JSX.Element => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 800,
+        duration: 600,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 600,
+        duration: 500,
         useNativeDriver: true,
       }),
       // Анимация свечения
@@ -55,7 +55,7 @@ const ProfileScreen = (): JSX.Element => {
             useNativeDriver: true,
           }),
           Animated.timing(glowAnim, {
-            toValue: 0.3,
+            toValue: 0.4,
             duration: 2000,
             useNativeDriver: true,
           }),
@@ -68,18 +68,18 @@ const ProfileScreen = (): JSX.Element => {
       setTimeout(() => {
         Animated.parallel([
           Animated.spring(particle.scale, {
-            toValue: 0.3 + Math.random() * 0.4,
+            toValue: 0.4 + Math.random() * 0.3,
             tension: 60 + Math.random() * 40,
             friction: 5 + Math.random() * 5,
             useNativeDriver: true,
           }),
           Animated.timing(particle.opacity, {
-            toValue: 0.1 + Math.random() * 0.2,
-            duration: 800 + Math.random() * 400,
+            toValue: 0.15 + Math.random() * 0.2,
+            duration: 600 + Math.random() * 400,
             useNativeDriver: true,
           }),
         ]).start();
-      }, index * 50);
+      }, index * 40);
     });
   }, []);
 
@@ -136,9 +136,9 @@ const ProfileScreen = (): JSX.Element => {
   const orbColors = getOrbColors();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, marginTop: 5 }}>
       
-      {/* Анимированный фон как на других страницах */}
+      {/* Анимированный фон */}
       <View style={styles.background} pointerEvents="none">
         <LinearGradient
           colors={getBackgroundGradient()}
@@ -153,7 +153,7 @@ const ProfileScreen = (): JSX.Element => {
               backgroundColor: orbColors.orb1,
               opacity: glowAnim.interpolate({
                 inputRange: [0, 1],
-                outputRange: [0.5, 0.8]
+                outputRange: [0.3, 0.6]
               }),
             }
           ]} 
@@ -165,7 +165,7 @@ const ProfileScreen = (): JSX.Element => {
               backgroundColor: orbColors.orb2,
               opacity: glowAnim.interpolate({
                 inputRange: [0, 1],
-                outputRange: [0.4, 0.7]
+                outputRange: [0.2, 0.5]
               }),
             }
           ]} 
@@ -177,7 +177,7 @@ const ProfileScreen = (): JSX.Element => {
               backgroundColor: orbColors.orb3,
               opacity: glowAnim.interpolate({
                 inputRange: [0, 1],
-                outputRange: [0.3, 0.6]
+                outputRange: [0.1, 0.4]
               }),
             }
           ]} 
@@ -206,7 +206,7 @@ const ProfileScreen = (): JSX.Element => {
       {/* Основной контент */}
       <View style={[styles.container, { zIndex: 10 }]}>
         
-        {/* Header Section */}
+        {/* Header Section с аватаркой по центру */}
         <Animated.View 
           style={[
             styles.headerSection,
@@ -240,16 +240,24 @@ const ProfileScreen = (): JSX.Element => {
                 style={[
                   styles.iconGlow,
                   { 
-                    opacity: glowAnim,
+                    opacity: glowAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.2, 0.4]
+                    }),
                     borderColor: colors.primary + '50',
                   }
                 ]} 
               />
-              <Ionicons name="person" size={32} color={colors.white} />
+              <Ionicons name="person" size={34} color={colors.white} />
             </LinearGradient>
           </Animated.View>
-          <Text style={[styles.mainTitle, { color: colors.text }]}>ПРОФИЛЬ</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Настройте приложение под себя</Text>
+          
+          <View style={styles.headerTextContainer}>
+            <Text style={[styles.mainTitle, { color: colors.text }]}>Профиль</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Настройки и статистика
+            </Text>
+          </View>
         </Animated.View>
 
         {/* Content */}
@@ -271,10 +279,10 @@ const ProfileScreen = (): JSX.Element => {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Ionicons name="color-palette" size={24} color={colors.primary} />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>ТЕМА ОФОРМЛЕНИЯ</Text>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Тема оформления</Text>
               </View>
               <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
-                Выберите подходящую цветовую тему для комфортного использования
+                Выберите подходящую цветовую тему
               </Text>
 
               <View style={styles.themeOptions}>
@@ -289,7 +297,7 @@ const ProfileScreen = (): JSX.Element => {
                           {
                             translateY: fadeAnim.interpolate({
                               inputRange: [0, 1],
-                              outputRange: [30, 0]
+                              outputRange: [20, 0]
                             })
                           }
                         ]
@@ -319,7 +327,7 @@ const ProfileScreen = (): JSX.Element => {
                       >
                         <Ionicons 
                           name={option.icon} 
-                          size={32} 
+                          size={28} 
                           color={colors.white} 
                         />
                       </LinearGradient>
@@ -344,7 +352,7 @@ const ProfileScreen = (): JSX.Element => {
               </View>
             </View>
 
-            {/* Stats Section - В разработке */}
+            {/* Settings Section */}
             <View style={styles.section}>
               <View style={[
                 styles.comingSoonContainer, 
@@ -353,72 +361,7 @@ const ProfileScreen = (): JSX.Element => {
                   borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
                 }
               ]}>
-                <Ionicons name="construct" size={40} color={colors.textSecondary} style={styles.comingSoonIcon} />
-                <Text style={[styles.comingSoonTitle, { color: colors.textSecondary }]}>
-                  Функция в разработке
-                </Text>
-                <Text style={[styles.comingSoonText, { color: colors.textTertiary }]}>
-                  Подробная статистика появится в следующем обновлении
-                </Text>
-              </View>
-
-              <View style={styles.sectionHeader}>
-                <Ionicons name="stats-chart" size={24} color={colors.textSecondary} />
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>ВАША СТАТИСТИКА</Text>
-              </View>
-
-              <View style={[styles.statsGrid, { opacity: 0.5 }]}>
-                <View style={[
-                  styles.statCard, 
-                  { 
-                    backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-                    borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                    borderWidth: 1,
-                  }
-                ]}>
-                  <Ionicons name="time" size={24} color={colors.textSecondary} />
-                  <Text style={[styles.statNumber, { color: colors.textSecondary }]}>--:--</Text>
-                  <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Обучения</Text>
-                </View>
-                
-                <View style={[
-                  styles.statCard, 
-                  { 
-                    backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-                    borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                    borderWidth: 1,
-                  }
-                ]}>
-                  <Ionicons name="checkmark-done" size={24} color={colors.textSecondary} />
-                  <Text style={[styles.statNumber, { color: colors.textSecondary }]}>---</Text>
-                  <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Упражнений</Text>
-                </View>
-                
-                <View style={[
-                  styles.statCard, 
-                  { 
-                    backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-                    borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                    borderWidth: 1,
-                  }
-                ]}>
-                  <Ionicons name="trophy" size={24} color={colors.textSecondary} />
-                  <Text style={[styles.statNumber, { color: colors.textSecondary }]}>--%</Text>
-                  <Text style={[styles.statLabel, { color: colors.textTertiary }]}>Успеваемость</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Settings Section - В разработке */}
-            <View style={styles.section}>
-              <View style={[
-                styles.comingSoonContainer, 
-                { 
-                  backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
-                  borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                }
-              ]}>
-                <Ionicons name="construct" size={40} color={colors.textSecondary} style={styles.comingSoonIcon} />
+                <Ionicons name="construct" size={38} color={colors.textSecondary} style={styles.comingSoonIcon} />
                 <Text style={[styles.comingSoonTitle, { color: colors.textSecondary }]}>
                   Настройки в разработке
                 </Text>
@@ -429,7 +372,7 @@ const ProfileScreen = (): JSX.Element => {
 
               <View style={styles.sectionHeader}>
                 <Ionicons name="settings" size={24} color={colors.textSecondary} />
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>НАСТРОЙКИ</Text>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Настройки</Text>
               </View>
 
               <View style={[
@@ -519,25 +462,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: '10%',
     right: '5%',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   floatingOrb2: {
     position: 'absolute',
     bottom: '15%',
     left: '5%',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   floatingOrb3: {
     position: 'absolute',
     top: '50%',
     left: '70%',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
   },
   particlesContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -551,44 +494,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 15,
     zIndex: 10,
   },
   headerSection: {
     alignItems: 'center',
-    marginBottom: 30,
-    paddingTop: 10,
+    marginBottom: 25,
   },
   iconContainer: {
-    marginBottom: 16,
+    marginBottom: 15,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
   },
   iconGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
   iconGlow: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 40,
+    borderRadius: 35,
     borderWidth: 2,
   },
+  headerTextContainer: {
+    alignItems: 'center',
+  },
   mainTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    letterSpacing: 2,
-    marginBottom: 8,
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    letterSpacing: 1,
+    fontSize: 15,
+    fontWeight: '400',
   },
   contentContainer: {
     flex: 1,
@@ -598,24 +542,23 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 28,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontSize: 19,
+    fontWeight: '600',
   },
   sectionDescription: {
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '400',
-    marginBottom: 20,
+    marginBottom: 18,
   },
   themeOptions: {
     gap: 12,
@@ -632,8 +575,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   themePreview: {
-    width: 60,
-    height: 60,
+    width: 55,
+    height: 55,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -643,22 +586,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   themeTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   themeDescription: {
     fontSize: 14,
     fontWeight: '400',
   },
   selectedIndicator: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // Стили для блоков "в разработке"
   comingSoonContainer: {
     borderRadius: 16,
     padding: 20,
@@ -672,7 +614,7 @@ const styles = StyleSheet.create({
   },
   comingSoonTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -694,7 +636,7 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 8,
     marginBottom: 4,
   },

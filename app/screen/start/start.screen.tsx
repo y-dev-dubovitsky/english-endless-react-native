@@ -298,7 +298,7 @@ const StartScreen = ({ navigation }: any): JSX.Element => {
           useNativeDriver: true,
         }),
       ]).start(() => {
-        navigation.navigate('Список времен');
+        navigation.navigate('ОсновныеТабы');
       });
     });
   };
@@ -760,9 +760,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   roundButton: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
