@@ -17,43 +17,46 @@ export const PRESENT_CONTINUOUS: TenseInterface = {
       { Tom: 'Том' },
       { Kate: 'Кейт' },
       { James: 'Джеймс' },
-      { 'Edna Mode': 'Эдна Мод' },
-      { 'Randle McMurphy': 'Рэндл Макмерфи' },
-      { 'Optimus Prime': 'Оптимус Прайм' },
-      { 'Norman Bates': 'Норман Бейтс' },
-      { Legolas: 'Леголас' },
-      { 'Wednesday Addams': 'Уэнсдэй Аддамс' },
-      { 'Ethan Hunt': 'Итан Хант' },
-      { 'Samwise Gamgee': 'Сэмуайз Гэмджи' },
-      { 'Donnie Darko': 'Донни Дарко' },
-      { 'Rocky Balboa': 'Рокки Бальбоа' },
-      { Groot: 'Грут' },
-      { 'Peter Venkman': 'Питер Венкман' },
-      { 'Johnny Depp': 'Джонни Депп' },
-      { 'Leonardo DiCaprio': 'Леонардо Ди Каприо' },
-      { 'Will Smith': 'Уилл Смит' },
-      { 'Jim carrey': 'Джим Керри' },
-      { 'Brad Pitt': 'Брэд Питт' },
-      { 'Keanu Reeves': 'Киану Ривз' },
-      { 'Tom Hardy': 'Том Харди' },
-      { 'Tom Hanks': 'Том Хэнкс' },
-      { 'Matthew David McConaughey': 'Мэттью Дэвид МакКонахи' },
-      { 'Anthony Hopkins': 'Энтони Хопкинс' },
-      { 'Tom Cruise': 'Том Круз' },
-      { 'Walter Bruce Willis': 'Уо́лтер Брюс Уи́ллис' },
-      { 'Angelina Jolie': 'Анджелина Джоли' },
-      { 'Keira Knightley': 'Кира Найтли' },
-      { 'Jennifer Aniston': 'Дженнифер Энистон' },
-      { 'Margot Robbie': 'Марго Робби' },
-      { 'Emma Watson': 'Эмма Уотсон' },
-      { 'Ann Hataway': 'Энн Хэтэуэй' },
-      { 'Charlize Theron': 'Шарлиз Терон' },
-      { 'Julia Roberts': 'Джулия Робертс' },
-      { 'Megan Fox': 'Меган Фокс' },
-      { 'Kristen Stewart': 'Кристен Стюарт' },
-      { 'Scarlett Johansson': 'Скарлетт Йоханссон' },
-      { 'Kate Winslet': 'Кейт Уинслет' },
-      { 'Sharon Stone': 'Шэрон Стоун' },
+      { 'Alexandre Drakon': 'Александр Дракон' },
+      { 'Michael Storm': 'Майкл Шторм' },
+      { 'James Falcon': 'Джеймс Фалкон' },
+      { 'Victor Blackwood': 'Виктор Блэквуд' },
+      { 'Thomas Shadow': 'Томас Шэдоу' },
+      { 'Henry Steel': 'Генри Стил' },
+      { 'Daniel Night': 'Дэниел Найт' },
+      { 'Lucas Hart': 'Лукас Харт' },
+      { 'Scott Ranger': 'Скотт Рейнджер' },
+      { 'Ethan Blaze': 'Итан Блейз' },
+      { 'Dorian Knight': 'Дориан Найт' },
+      { 'Nathan True': 'Нэйтан Тру' },
+      { 'Jake Thunder': 'Джейк Тандер' },
+      { 'Mark Valor': 'Марк Валор' },
+      { 'Gabriel Grey': 'Габриэль Грей' },
+      { 'Julian Hawk': 'Джулиан Хоак' },
+      { 'Bartley Noir': 'Бартли Нуар' },
+      { 'Sidney Sterling': 'Сидни Стерлинг' },
+      { 'Brandon Stone': 'Брэндон Стоун' },
+      { 'Ronald Cross': 'Рональд Кросс' },
+      { 'Ivan Petrov': 'Иван Петров' },
+      { 'Alexey Smirnov': 'Алексей Смирнов' },
+      { 'Dmitry Volkov': 'Дмитрий Волков' },
+      { 'Sergey Popov': 'Сергей Попов' },
+      { 'Nikolai Chernov': 'Николай Чернов' },
+      { 'Vladimir Lebedev': 'Владимир Лебедев' },
+      { 'Artyom Vasiliev': 'Артём Васильев' },
+      { 'Maxim Kuznetsov': 'Максим Кузнецов' },
+      { 'Roman Grigoriev': 'Роман Григорьев' },
+      { 'Pavel Sokolov': 'Павел Соколов' },
+      { 'Egor Tikhonov': 'Егор Тихонов' },
+      { 'Anton Fedorov': 'Антон Фёдоров' },
+      { 'Andrei Zaitsev': 'Андрей Зайцев' },
+      { 'Kirill Semyonov': 'Кирилл Семёнов' },
+      { 'Denis Morozov': 'Денис Морозов' },
+      { 'Valery Ivanov': 'Валерий Иванов' },
+      { 'Viktor Afanasyev': 'Виктор Афанасьев' },
+      { 'Yuri Dmitriev': 'Юрий Дмитриев' },
+      { 'Leonid Orlov': 'Леонид Орлов' },
+      { 'Mikhail Pankratov': 'Михаил Панкратов' },
     ],
     [
       { They: 'Они' },
@@ -100,6 +103,87 @@ export const PRESENT_CONTINUOUS: TenseInterface = {
     [
       { 'working now': 'работает прямо сейчас' },
       { 'reading now': 'читает прямо сейчас' },
+      { 'working diligently on the project': 'усердно работает над проектом' },
+      {
+        'going home after a long day at work':
+          'идет домой после долгого рабочего дня',
+      },
+      {
+        'reading an intriguing book about history':
+          'читает увлекательную книгу о истории',
+      },
+      {
+        'watching a fascinating documentary on wildlife':
+          'смотрит увлекательный документальный фильм о животных',
+      },
+      {
+        'playing beautiful melodies on his guitar':
+          'играет красивые мелодии на своей гитаре',
+      },
+      {
+        'eating a delicious homemade dinner with family':
+          'ужинает с семьей за вкусным домашним ужином',
+      },
+      {
+        'drinking refreshing water after a workout':
+          'пьет освежающую воду после тренировки',
+      },
+      {
+        'baking fresh bread for the weekend brunch':
+          'печет свежий хлеб для воскресного завтрака',
+      },
+      {
+        'studying hard for his upcoming mathematics exam':
+          'усердно учится к предстоящему экзамену по математике',
+      },
+      {
+        'taking a well-deserved break from work':
+          'делает заслуженный перерыв от работы',
+      },
+      {
+        'traveling abroad to explore new cultures':
+          'путешествует за границу, чтобы исследовать новые культуры',
+      },
+      {
+        'drawing a stunning picture of a sunset':
+          'рисует удивительную картину заката',
+      },
+      {
+        'singing a heartfelt song to entertain his friends':
+          'поет душевную песню, чтобы развлекать друзей',
+      },
+      {
+        'fixing his old car that has been acting up':
+          'ремонтирует свою старую машину, которая подводит',
+      },
+      {
+        'learning new languages to broaden his horizons':
+          'изучает новые языки, чтобы расширить свои горизонты',
+      },
+      {
+        'cleaning his room to create a tidy space':
+          'убирает свою комнату, чтобы создать порядок',
+      },
+      {
+        'planning an exciting trip to the mountains':
+          'планирует захватывающее путешествие в горы',
+      },
+      {
+        'playing chess with his grandfather every Sunday':
+          'играет в шахматы с дедом каждое воскресенье',
+      },
+      {
+        'watching the sunset from the beach with friends':
+          'смотрит на закат с пляжа с друзьями',
+      },
+      {
+        'visiting a museum to admire ancient artifacts':
+          'посещает музей, чтобы полюбоваться древними артефактами',
+      },
+      {
+        'attending a meeting to discuss important decisions':
+          'участвует в встрече, чтобы обсудить важные решения',
+      },
     ],
     [
       { 'working now': 'работают прямо сейчас' },
