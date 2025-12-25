@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     justifyContent: 'space-between',
-    paddingTop: 60,
+    paddingTop: 0,
     paddingBottom: 40,
   },
   mainBlock: {
@@ -760,9 +760,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   roundButton: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
