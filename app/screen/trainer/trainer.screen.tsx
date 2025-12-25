@@ -1,4 +1,4 @@
-// trainer.screen.tsx - исправленная версия с модалкой для неправильного ответа
+// trainer.screen.tsx - оптимизированная версия с адаптивной карточкой
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React, {
   useEffect,
@@ -22,281 +22,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SentenceInterface, TenseInterface } from '../../types';
 import { default as rndRangeNum } from '../../utils/randomNumberInRange';
 import { useTheme } from '../../contexts/ThemeContext';
+import { updateAnswerStats } from '../main/main.screen';
 
 const { width, height } = Dimensions.get('window');
 
-// Моковые слова для вариантов ответов
+// Моковые слова для вариантов ответов (упрощенный список для примера)
 const MOCK_WORDS = [
-  'есть',
-  'есть',
-  'есть',
-  'был',
-  'были',
-  'иметь',
-  'имеет',
-  'имел',
-  'делать',
-  'делает',
-  'делал',
-  'буду',
-  'бы',
-  'могу',
-  'мог',
-  'должен',
-  'может',
-  'может быть',
-  'должен',
-  'должен',
-  'идти',
-  'шел',
-  'увидеть',
-  'увидел',
-  'взять',
-  'взял',
-  'сделать',
-  'сделал',
-  'приходить',
-  'пришел',
-  'знать',
-  'знал',
-  'получить',
-  'получил',
-  'дать',
-  'дал',
-  'найти',
-  'нашел',
-  'думать',
-  'думал',
-  'сказать',
-  'сказал',
-  'хотеть',
-  'хотел',
-  'оставлять',
-  'оставить',
-  'помнить',
-  'забыть',
-  'чувствовать',
-  'чувствовал',
-  'разговаривать',
-  'говорить',
-  'работать',
-  'учить',
-  'обучать',
-  'покупать',
-  'продавать',
-  'играть',
-  'смотреть',
-  'ждать',
-  'ждал',
-  'бить',
-  'встречать',
-  'лететь',
-  'летел',
-  'писать',
-  'написал',
-  'кричать',
-  'плакать',
-  'улыбаться',
-  'смеяться',
-  'ходить',
-  'бежать',
-  'прыгать',
-  'танцевать',
-  'чистить',
-  'мыть',
-  'звать',
-  'звонил',
-  'слышать',
-  'слушать',
-  'наблюдать',
-  'сидеть',
-  'стоял',
-  'путешествовать',
-  'жить',
-  'умереть',
-  'помогать',
-  'желать',
-  'выбирать',
-  'искать',
-  'спрашивать',
-  'отвечать',
-  'пробовать',
-  'регулировать',
-  'добавлять',
-  'удалять',
-  'заботиться',
-  'равняться',
-  'сравнивать',
-  'миновать',
-  'оставлять',
-  'заставлять',
-  'размышлять',
-  'доказывать',
-  'выражать',
-  'кричать',
-  'восклицать',
-  'находить',
-  'показывать',
-  'соединять',
-  'приходить',
-  'покидывать',
-  'прийти',
-  'открывать',
-  'закрывать',
-  'добавить',
-  'заменять',
-  'устанавливать',
-  'продолжать',
-  'переставать',
-  'понимать',
-  'изучать',
-  'переводить',
-  'призывать',
-  'платить',
-  'замышлять',
-  'критиковать',
-  'осуждать',
-  'дразнить',
-  'покидать',
-  'уверять',
-  'обещать',
-  'разводить',
-  'смешивать',
-  'применять',
-  'собеседовать',
-  'отвечать',
-  'изменять',
-  'оправдывать',
-  'участвовать',
-  'признавать',
-  'фиксировать',
-  'освобождать',
-  'признавать',
-  'потрясать',
-  'завершать',
-  'достигать',
-  'устраивать',
-  'выводить',
-  'утверждать',
-  'возвращать',
-  'договариваться',
-  'делить',
-  'разминать',
-  'наказывать',
-  'менять',
-  'принимать',
-  'выводить',
-  'фокусировать',
-  'править',
-  'формировать',
-  'развивать',
-  'заслуживать',
-  'защищать',
-  'проверять',
-  'избегать',
-  'охранять',
-  'выразить',
-  'выбирать',
-  'мириться',
-  'прощать',
-  'исправлять',
-  'объяснять',
-  'передавать',
-  'управлять',
-  'проводить',
-  'поддерживать',
-  'разгадывать',
-  'считать',
-  'покорять',
-  'объяснять',
-  'исследовать',
-  'преодолевать',
-  'находить',
-  'объединять',
-  'отпускать',
-  'заботиться',
-  'рекомендовать',
-  'сохранять',
-  'планировать',
-  'развивать',
-  'сформировать',
-  'улучшать',
-  'формировать',
-  'производить',
-  'анализировать',
-  'исследовать',
-  'конструировать',
-  'создавать',
-  'проектировать',
-  'проверять',
-  'настраивать',
-  'подготавливать',
-  'выражать',
-  'предлагать',
-  'оставлять',
-  'показывать',
-  'рассматривать',
-  'укреплять',
-  'разрабатывать',
-  'утверждать',
-  'доказывать',
-  'выявлять',
-  'привлекать',
-  'применять',
-  'ассоциировать',
-  'выдавать',
-  'сообщать',
-  'завершать',
-  'вводить',
-  'заключать',
-  'устанавливать',
-  'документировать',
-  'соединять',
-  'предсказывать',
-  'понимать',
-  'исправлять',
-  'контролировать',
-  'жарить',
-  'печь',
-  'варить',
-  'мешать',
-  'разливать',
-  'усиливать',
-  'уменьшать',
-  'дотрагиваться',
-  'изменять',
-  'мыслить',
-  'интерпретировать',
-  'разъяснять',
-  'опростить',
-  'заботиться',
-  'обсуждать',
-  'настраивать',
-  'включать',
-  'выключать',
-  'помогать',
-  'упрощать',
-  'формировать',
-  'смешивать',
-  'изменять',
-  'проектировать',
-  'управлять',
-  'вводить',
-  'освобождать',
-  'накапливать',
-  'снижать',
-  'укрывать',
-  'габарировать',
-  'уточнять',
-  'приспосабливать',
-  'обнаруживать',
-  'отслеживать',
-  'разгерметизировать',
-  'сфокусировать',
-  'подводить',
-  'собирать',
-  'размышлять',
-  'проектировать',
+  'есть', 'был', 'были', 'иметь', 'делать', 'буду', 'бы',
+  'могу', 'должен', 'идти', 'шел', 'увидеть', 'взять', 'сделать',
+  'приходить', 'знать', 'получить', 'дать', 'найти', 'думать'
 ];
 
 const TrainerComponent = (props: any): JSX.Element => {
@@ -314,13 +48,10 @@ const TrainerComponent = (props: any): JSX.Element => {
     total: 0,
   });
   const [isAnswerVisible, setIsAnswerVisible] = useState<boolean>(false);
-  const [isWrongAnswerVisible, setIsWrongAnswerVisible] =
-    useState<boolean>(false);
+  const [isWrongAnswerVisible, setIsWrongAnswerVisible] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
   const [streak, setStreak] = useState<number>(0);
-  const [particles, setParticles] = useState<
-    Array<{ id: number; x: number; y: number }>
-  >([]);
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number }>>([]);
   const particleIdCounter = useRef(0);
 
   // Refs для кеширования
@@ -392,7 +123,7 @@ const TrainerComponent = (props: any): JSX.Element => {
         ),
       ];
 
-      // Добавляем моковые слова (30-50% от количества реальных слов)
+      // Добавляем моковые слова
       const mockWordsCount = Math.max(
         3,
         Math.min(MOCK_WORDS.length, Math.floor(allRealWords.length * 0.4))
@@ -455,14 +186,14 @@ const TrainerComponent = (props: any): JSX.Element => {
       ),
     ]).start();
 
-    // Create floating particles with unique IDs
-    const newParticles = Array.from({ length: 15 }, (_, i) => ({
+    // Create floating particles
+    const newParticles = Array.from({ length: 10 }, (_, i) => ({
       id: i,
       x: Math.random() * width,
       y: Math.random() * height,
     }));
     setParticles(newParticles);
-    particleIdCounter.current = 15;
+    particleIdCounter.current = 10;
   }, []);
 
   // Methods
@@ -493,7 +224,7 @@ const TrainerComponent = (props: any): JSX.Element => {
       const newSelectedWords = [...selectedWords, word];
       setSelectedWords(newSelectedWords);
 
-      // Add selection particle effect with unique ID
+      // Add selection particle effect
       const newParticleId = particleIdCounter.current;
       particleIdCounter.current += 1;
 
@@ -502,9 +233,9 @@ const TrainerComponent = (props: any): JSX.Element => {
         x: Math.random() * width,
         y: height * 0.7,
       };
-      setParticles(prev => [...prev.slice(-50), newParticle]); // Ограничиваем количество частиц
+      setParticles(prev => [...prev.slice(-30), newParticle]);
 
-      // Автоматическое удаление частицы через 3 секунды
+      // Автоматическое удаление частицы
       setTimeout(() => {
         setParticles(prev => prev.filter(p => p.id !== newParticleId));
       }, 3000);
@@ -526,7 +257,7 @@ const TrainerComponent = (props: any): JSX.Element => {
   }, []);
 
   const createSuccessParticles = useCallback(() => {
-    const successParticles = Array.from({ length: 25 }, (_, i) => {
+    const successParticles = Array.from({ length: 20 }, (_, i) => {
       const id = particleIdCounter.current + i;
       return {
         id,
@@ -535,10 +266,10 @@ const TrainerComponent = (props: any): JSX.Element => {
       };
     });
 
-    particleIdCounter.current += 25;
+    particleIdCounter.current += 20;
     setParticles(prev => [...prev, ...successParticles]);
 
-    // Автоматическое удаление успешных частиц через 2 секунды
+    // Удаление успешных частиц
     setTimeout(() => {
       const idsToRemove = successParticles.map(p => p.id);
       setParticles(prev => prev.filter(p => !idsToRemove.includes(p.id)));
@@ -566,8 +297,6 @@ const TrainerComponent = (props: any): JSX.Element => {
 
   const showWrongAnswerModal = useCallback(() => {
     setIsWrongAnswerVisible(true);
-
-    // Анимация появления модалки
     Animated.spring(wrongAnswerModalAnim, {
       toValue: 1,
       tension: 100,
@@ -577,7 +306,6 @@ const TrainerComponent = (props: any): JSX.Element => {
   }, []);
 
   const hideWrongAnswerModal = useCallback(() => {
-    // Анимация скрытия модалки
     Animated.spring(wrongAnswerModalAnim, {
       toValue: 0,
       tension: 100,
@@ -602,6 +330,8 @@ const TrainerComponent = (props: any): JSX.Element => {
         total: prev.total + 1,
       }));
       playSuccessAnimation();
+      // TODO Вынести в store
+      updateAnswerStats(isCorrect);
 
       setTimeout(() => getNextSentence(tense!), 2000);
     } else {
@@ -693,10 +423,10 @@ const TrainerComponent = (props: any): JSX.Element => {
           style={styles.backgroundGradient}
         />
 
-        {/* Floating Particles with unique keys */}
+        {/* Floating Particles */}
         {particles.map(particle => (
           <Animated.View
-            key={`particle-${particle.id}`} // Используем префикс для уникальности
+            key={`particle-${particle.id}`}
             style={[
               styles.particle,
               {
@@ -715,93 +445,87 @@ const TrainerComponent = (props: any): JSX.Element => {
         <Animated.View
           style={[styles.container, { transform: [{ translateY: mainSlide }] }]}
         >
-          {/* Premium Header */}
-          <View style={styles.header}>
+          {/* Компактный Header */}
+          <View style={styles.compactHeader}>
             <TouchableOpacity
-              style={styles.backButton}
+              style={styles.compactBackButton}
               onPress={navigateToMainPage}
               activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <LinearGradient
-                colors={
-                  theme === 'light'
-                    ? [colors.primaryLight, colors.primary]
-                    : ['#663DFF', '#8B5CFF']
-                }
-                style={styles.backGradient}
-              >
-                <Ionicons name='chevron-back' size={24} color='#FFFFFF' />
-                <Text style={styles.backText}>Назад</Text>
-              </LinearGradient>
+              <Ionicons 
+                name='chevron-back' 
+                size={24} 
+                color={theme === 'light' ? colors.primary : '#FFFFFF'} 
+              />
             </TouchableOpacity>
 
-            <View style={styles.statsContainer}>
-              <View
-                style={[
-                  styles.statCard,
-                  {
-                    backgroundColor:
-                      theme === 'light'
-                        ? 'rgba(255, 255, 255, 0.2)'
-                        : 'rgba(255, 255, 255, 0.1)',
-                    borderColor:
-                      theme === 'light'
-                        ? 'rgba(255, 255, 255, 0.3)'
-                        : 'rgba(255, 255, 255, 0.2)',
-                  },
-                ]}
-              >
-                <Text style={styles.statValue}>{score}</Text>
-                <Text style={styles.statLabel}>ОЧКИ</Text>
+            <View style={styles.compactStats}>
+              <View style={styles.compactStatItem}>
+                <Text style={styles.compactStatValue}>{score}</Text>
+                <Text style={styles.compactStatLabel}>Очки</Text>
               </View>
-              <View
-                style={[
-                  styles.statCard,
-                  streak > 0 && styles.streakCard,
-                  {
-                    backgroundColor:
-                      streak > 0
-                        ? theme === 'light'
-                          ? 'rgba(255, 107, 53, 0.1)'
-                          : 'rgba(255, 107, 53, 0.2)'
-                        : theme === 'light'
-                        ? 'rgba(255, 255, 255, 0.2)'
-                        : 'rgba(255, 255, 255, 0.1)',
-                    borderColor:
-                      streak > 0
-                        ? theme === 'light'
-                          ? 'rgba(255, 107, 53, 0.3)'
-                          : 'rgba(255, 107, 53, 0.4)'
-                        : theme === 'light'
-                        ? 'rgba(255, 255, 255, 0.3)'
-                        : 'rgba(255, 255, 255, 0.2)',
-                  },
-                ]}
-              >
-                <View style={styles.streakContent}>
-                  <Text style={styles.statValue}>{streak}</Text>
+              
+              <View style={[
+                styles.compactStatItem,
+                streak > 0 && styles.streakActive
+              ]}>
+                <View style={styles.streakRow}>
+                  <Text style={styles.compactStatValue}>{streak}</Text>
                   {streak >= 3 && (
-                    <Ionicons name='flame' size={20} color='#FF6B35' />
+                    <Ionicons name='flame' size={16} color='#FF6B35' />
                   )}
                 </View>
-                <Text style={styles.statLabel}>СЕРИЯ</Text>
+                <Text style={styles.compactStatLabel}>Серия</Text>
+              </View>
+
+              <View style={styles.compactStatItem}>
+                <Text style={styles.compactStatValue}>
+                  {progress.correct}/{progress.total}
+                </Text>
+                <Text style={styles.compactStatLabel}>Верно</Text>
               </View>
             </View>
           </View>
 
-          {/* Main Content Area */}
+          {/* Прогресс бар */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressHeader}>
+              <Text style={[styles.progressTitle, { color: colors.text }]}>
+                Прогресс
+              </Text>
+              <Text style={[styles.accuracyText, { 
+                color: accuracy >= 70 ? '#00D4AA' : accuracy >= 40 ? '#FFB300' : '#FF4081'
+              }]}>
+                {accuracy}%
+              </Text>
+            </View>
+            <View style={[styles.progressBarBackground, {
+              backgroundColor: theme === 'light' 
+                ? 'rgba(0, 0, 0, 0.1)' 
+                : 'rgba(255, 255, 255, 0.1)'
+            }]}>
+              <View style={[
+                styles.progressBarFill,
+                { 
+                  width: `${accuracy}%`,
+                  backgroundColor: accuracy >= 70 ? '#00D4AA' : accuracy >= 40 ? '#FFB300' : '#FF4081'
+                }
+              ]} />
+            </View>
+          </View>
+
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Premium Sentence Card */}
+            {/* Основная карточка */}
             <Animated.View
               style={[
-                styles.sentenceCard,
+                styles.mainCard,
                 {
                   transform: [{ scale: cardScale }],
+                  minHeight: height * 0.5, // Адаптивная высота
                 },
               ]}
             >
@@ -811,7 +535,7 @@ const TrainerComponent = (props: any): JSX.Element => {
                     ? ['rgba(240, 245, 255, 0.9)', 'rgba(230, 240, 255, 0.95)']
                     : ['rgba(30, 30, 60, 0.9)', 'rgba(20, 20, 40, 0.95)']
                 }
-                style={styles.sentenceGradient}
+                style={styles.cardGradient}
               >
                 {/* Card Glow Border */}
                 <Animated.View
@@ -826,6 +550,7 @@ const TrainerComponent = (props: any): JSX.Element => {
                 />
 
                 <View style={styles.cardContent}>
+                  {/* Заголовок карточки */}
                   <View style={styles.cardHeader}>
                     <View
                       style={[
@@ -854,324 +579,208 @@ const TrainerComponent = (props: any): JSX.Element => {
                         {tense?.name || 'PRESENT SIMPLE'}
                       </Text>
                     </View>
+                    
                     <TouchableOpacity
                       style={styles.hintButton}
                       onPress={() => setIsAnswerVisible(true)}
                       activeOpacity={0.7}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                       <Ionicons
-                        name='star'
-                        size={24}
+                        name='help-circle-outline'
+                        size={22}
                         color={theme === 'light' ? colors.primary : '#8B5CFF'}
                       />
                     </TouchableOpacity>
                   </View>
 
-                  <Text style={[styles.englishText, { color: colors.text }]}>
-                    {sentence.en}
-                  </Text>
-
-                  <View style={styles.statsRow}>
-                    <View style={styles.accuracyMeter}>
-                      <View
-                        style={[
-                          styles.accuracyBackground,
-                          {
-                            backgroundColor:
-                              theme === 'light'
-                                ? 'rgba(0, 0, 0, 0.1)'
-                                : 'rgba(255, 255, 255, 0.1)',
-                          },
-                        ]}
-                      >
-                        <View
-                          style={[
-                            styles.accuracyFill,
-                            {
-                              width: `${accuracy}%`,
-                              backgroundColor:
-                                accuracy >= 70
-                                  ? '#00D4AA'
-                                  : accuracy >= 40
-                                  ? '#FFB300'
-                                  : '#FF4081',
-                            },
-                          ]}
-                        />
-                      </View>
-                      <Text
-                        style={[
-                          styles.accuracyText,
-                          {
-                            color:
-                              theme === 'light'
-                                ? 'rgba(0, 0, 0, 0.7)'
-                                : 'rgba(255, 255, 255, 0.7)',
-                          },
-                        ]}
-                      >
-                        {accuracy}% Точность
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.progressCircle,
-                        {
-                          backgroundColor:
-                            theme === 'light'
-                              ? 'rgba(255, 255, 255, 0.2)'
-                              : 'rgba(255, 255, 255, 0.1)',
-                          borderColor:
-                            theme === 'light'
-                              ? 'rgba(0, 0, 0, 0.2)'
-                              : 'rgba(255, 255, 255, 0.2)',
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[styles.progressCount, { color: colors.text }]}
-                      >
-                        {progress.correct}/{progress.total}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </LinearGradient>
-            </Animated.View>
-
-            {/* Build Area */}
-            <View style={styles.buildSection}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  {
-                    color:
-                      theme === 'light'
-                        ? 'rgba(0, 0, 0, 0.6)'
-                        : 'rgba(255, 255, 255, 0.6)',
-                  },
-                ]}
-              >
-                Составьте предложение
-              </Text>
-
-              <View
-                style={[
-                  styles.selectedArea,
-                  {
-                    backgroundColor:
-                      theme === 'light'
-                        ? 'rgba(0, 0, 0, 0.05)'
-                        : 'rgba(255, 255, 255, 0.05)',
-                    borderColor:
-                      theme === 'light'
-                        ? 'rgba(0, 0, 0, 0.1)'
-                        : 'rgba(255, 255, 255, 0.1)',
-                  },
-                ]}
-              >
-                {selectedWords.length === 0 ? (
-                  <View style={styles.placeholder}>
-                    <Ionicons
-                      name='arrow-down'
-                      size={32}
-                      color={
-                        theme === 'light'
-                          ? 'rgba(102, 61, 255, 0.3)'
-                          : 'rgba(139, 92, 255, 0.5)'
-                      }
-                    />
-                    <Text
-                      style={[
-                        styles.placeholderText,
-                        {
-                          color:
-                            theme === 'light'
-                              ? 'rgba(0, 0, 0, 0.3)'
-                              : 'rgba(255, 255, 255, 0.3)',
-                        },
-                      ]}
-                    >
-                      Выберите слова чтобы составить предложение
+                  {/* Оригинальное предложение */}
+                  <View style={styles.sentenceSection}>
+                    <Text style={[styles.sectionLabel, { 
+                      color: theme === 'light' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)' 
+                    }]}>
+                      ОРИГИНАЛ:
+                    </Text>
+                    <Text style={[styles.originalText, { color: colors.text }]}>
+                      {sentence.en}
                     </Text>
                   </View>
-                ) : (
-                  <View style={styles.selectedWordsRow}>
-                    {selectedWords.map((word, index) => (
+
+                  {/* Пользовательское предложение */}
+                  <View style={styles.sentenceSection}>
+                    <Text style={[styles.sectionLabel, { 
+                      color: theme === 'light' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)' 
+                    }]}>
+                      ВАШ ОТВЕТ:
+                    </Text>
+                    <View style={[
+                      styles.userAnswerContainer,
+                      {
+                        backgroundColor: theme === 'light' 
+                          ? 'rgba(0, 0, 0, 0.05)' 
+                          : 'rgba(255, 255, 255, 0.05)',
+                        borderColor: theme === 'light'
+                          ? 'rgba(0, 0, 0, 0.1)'
+                          : 'rgba(255, 255, 255, 0.1)',
+                      }
+                    ]}>
+                      {selectedWords.length === 0 ? (
+                        <Text style={[styles.emptyAnswer, { 
+                          color: theme === 'light' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)' 
+                        }]}>
+                          Выберите слова ниже...
+                        </Text>
+                      ) : (
+                        <View style={styles.selectedWordsContainer}>
+                          {selectedWords.map((word, index) => (
+                            <TouchableOpacity
+                              key={`selected-${index}`}
+                              style={[
+                                styles.selectedWordChip,
+                                {
+                                  backgroundColor: theme === 'light'
+                                    ? 'rgba(102, 61, 255, 0.1)'
+                                    : 'rgba(102, 61, 255, 0.2)',
+                                }
+                              ]}
+                              onPress={() => handleWordDeselect(index)}
+                              activeOpacity={0.7}
+                            >
+                              <Text style={[
+                                styles.selectedWordText,
+                                { color: theme === 'light' ? colors.primary : '#8B5CFF' }
+                              ]}>
+                                {word}
+                              </Text>
+                              <Ionicons
+                                name='close-circle'
+                                size={16}
+                                color={theme === 'light' ? colors.primary : '#8B5CFF'}
+                                style={styles.removeIcon}
+                              />
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Доступные слова */}
+                  <View style={styles.wordsSection}>
+                    <Text style={[styles.sectionLabel, { 
+                      color: theme === 'light' ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)' 
+                    }]}>
+                      ВЫБЕРИТЕ СЛОВА:
+                    </Text>
+                    <View style={styles.wordsGrid}>
+                      {possibleWords.map((word, index) => {
+                        const isSelected = selectedWords.includes(word);
+                        return (
+                          <TouchableOpacity
+                            key={`word-${index}`}
+                            style={[
+                              styles.wordChip,
+                              {
+                                backgroundColor:
+                                  theme === 'light'
+                                    ? isSelected
+                                      ? 'rgba(102, 61, 255, 0.1)'
+                                      : 'rgba(255, 255, 255, 0.9)'
+                                    : isSelected
+                                    ? 'rgba(102, 61, 255, 0.2)'
+                                    : 'rgba(255, 255, 255, 0.1)',
+                                borderColor:
+                                  theme === 'light'
+                                    ? isSelected
+                                      ? colors.primary
+                                      : 'rgba(0, 0, 0, 0.1)'
+                                    : isSelected
+                                    ? '#8B5CFF'
+                                    : 'rgba(255, 255, 255, 0.2)',
+                              },
+                            ]}
+                            onPress={() => handleWordSelect(word)}
+                            disabled={isSelected}
+                            activeOpacity={0.6}
+                          >
+                            <Text style={[
+                              styles.wordChipText,
+                              { 
+                                color: isSelected
+                                  ? theme === 'light'
+                                    ? colors.primary
+                                    : '#8B5CFF'
+                                  : colors.text
+                              }
+                            ]} numberOfLines={1} ellipsizeMode="tail">
+                              {word}
+                            </Text>
+                            {isSelected && (
+                              <Ionicons
+                                name='checkmark-circle'
+                                size={16}
+                                color={theme === 'light' ? colors.primary : '#8B5CFF'}
+                                style={styles.wordCheckmark}
+                              />
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  {/* Кнопки действий */}
+                  {selectedWords.length > 0 && (
+                    <View style={styles.actionButtons}>
                       <TouchableOpacity
-                        key={`selected-${index}-${word}`}
-                        style={styles.selectedWordChip}
-                        onPress={() => handleWordDeselect(index)}
+                        style={[styles.clearButton, {
+                          backgroundColor: theme === 'light' 
+                            ? 'rgba(139, 92, 255, 0.05)' 
+                            : 'rgba(139, 92, 255, 0.1)',
+                          borderColor: theme === 'light'
+                            ? 'rgba(139, 92, 255, 0.2)'
+                            : 'rgba(139, 92, 255, 0.3)',
+                        }]}
+                        onPress={clearAnswer}
                         activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name='refresh'
+                          size={18}
+                          color={theme === 'light' ? '#667eea' : '#8B5CFF'}
+                        />
+                        <Text style={[styles.clearButtonText, {
+                          color: theme === 'light' ? '#667eea' : '#8B5CFF'
+                        }]}>
+                          Очистить
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.checkButton}
+                        onPress={checkAnswer}
+                        activeOpacity={0.8}
                       >
                         <LinearGradient
                           colors={
                             theme === 'light'
-                              ? ['#667eea', '#764ba2']
-                              : ['#663DFF', '#8B5CFF']
+                              ? ['#00B894', '#00D4AA']
+                              : ['#00D4AA', '#00B894']
                           }
-                          style={styles.selectedWordGradient}
+                          style={styles.checkButtonGradient}
                         >
-                          <Text style={styles.selectedWordText}>{word}</Text>
-                          <Ionicons
-                            name='close-circle'
-                            size={18}
-                            color='#FFFFFF'
-                          />
+                          <Ionicons name='checkmark-done' size={20} color='#000' />
+                          <Text style={styles.checkButtonText}>Проверить</Text>
                         </LinearGradient>
                       </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-
-              {selectedWords.length > 0 && (
-                <View style={styles.actionRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.secondaryButton,
-                      {
-                        backgroundColor:
-                          theme === 'light'
-                            ? 'rgba(139, 92, 255, 0.05)'
-                            : 'rgba(139, 92, 255, 0.1)',
-                        borderColor:
-                          theme === 'light'
-                            ? 'rgba(139, 92, 255, 0.2)'
-                            : 'rgba(139, 92, 255, 0.3)',
-                      },
-                    ]}
-                    onPress={clearAnswer}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name='refresh'
-                      size={20}
-                      color={theme === 'light' ? '#667eea' : '#8B5CFF'}
-                    />
-                    <Text
-                      style={[
-                        styles.secondaryText,
-                        { color: theme === 'light' ? '#667eea' : '#8B5CFF' },
-                      ]}
-                    >
-                      Очистить
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.primaryButton}
-                    onPress={checkAnswer}
-                    activeOpacity={0.8}
-                  >
-                    <LinearGradient
-                      colors={
-                        theme === 'light'
-                          ? ['#00B894', '#00D4AA']
-                          : ['#00D4AA', '#00B894']
-                      }
-                      style={styles.primaryGradient}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                    >
-                      <Ionicons name='checkmark-done' size={24} color='#000' />
-                      <Text style={styles.primaryText}>Проверить</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
-              )}
-            </View>
-
-            {/* Words Grid */}
-            <View style={styles.wordsSection}>
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  {
-                    color:
-                      theme === 'light'
-                        ? 'rgba(0, 0, 0, 0.6)'
-                        : 'rgba(255, 255, 255, 0.6)',
-                  },
-                ]}
-              >
-                Доступные слова
-              </Text>
-
-              <View style={styles.wordsGrid}>
-                {possibleWords.map((word, index) => {
-                  const isSelected = selectedWords.includes(word);
-                  return (
-                    <TouchableOpacity
-                      key={`word-${index}-${word}`}
-                      style={[
-                        styles.wordPill,
-                        {
-                          backgroundColor:
-                            theme === 'light'
-                              ? isSelected
-                                ? 'rgba(102, 61, 255, 0.1)'
-                                : 'rgba(255, 255, 255, 0.2)'
-                              : isSelected
-                              ? 'rgba(102, 61, 255, 0.2)'
-                              : 'rgba(255, 255, 255, 0.1)',
-                          borderColor:
-                            theme === 'light'
-                              ? isSelected
-                                ? 'rgba(102, 61, 255, 0.3)'
-                                : 'rgba(0, 0, 0, 0.2)'
-                              : isSelected
-                              ? 'rgba(102, 61, 255, 0.5)'
-                              : 'rgba(255, 255, 255, 0.2)',
-                        },
-                      ]}
-                      onPress={() => handleWordSelect(word)}
-                      disabled={isSelected}
-                      activeOpacity={0.6}
-                    >
-                      <Text
-                        style={[
-                          styles.wordPillText,
-                          {
-                            color: isSelected
-                              ? theme === 'light'
-                                ? 'rgba(102, 61, 255, 0.7)'
-                                : 'rgba(255, 255, 255, 0.5)'
-                              : colors.text,
-                          },
-                        ]}
-                      >
-                        {word}
-                      </Text>
-                      {isSelected && (
-                        <View
-                          style={[
-                            styles.selectedIndicator,
-                            {
-                              backgroundColor:
-                                theme === 'light'
-                                  ? 'rgba(0, 212, 170, 0.2)'
-                                  : 'rgba(0, 212, 170, 0.2)',
-                            },
-                          ]}
-                        >
-                          <Ionicons
-                            name='checkmark'
-                            size={16}
-                            color='#00D4AA'
-                          />
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
+              </LinearGradient>
+            </Animated.View>
           </ScrollView>
         </Animated.View>
 
-        {/* Epic Success Overlay */}
+        {/* Success Overlay */}
         <Animated.View
           style={[styles.successOverlay, { opacity: successAnim }]}
           pointerEvents='none'
@@ -1180,15 +789,9 @@ const TrainerComponent = (props: any): JSX.Element => {
             colors={getSuccessGradientColors()}
             style={styles.successCard}
           >
-            <View style={styles.successIcon}>
-              <Ionicons name='trophy' size={80} color='#000' />
-            </View>
-            <Text style={styles.successTitle}>Великолепно!</Text>
-            <Text style={styles.successScore}>+10 XP</Text>
-            <View style={styles.successStreak}>
-              <Ionicons name='flash' size={20} color='#000' />
-              <Text style={styles.successStreakText}>Попытка: {streak}</Text>
-            </View>
+            <Ionicons name='trophy' size={60} color='#000' />
+            <Text style={styles.successTitle}>Отлично!</Text>
+            <Text style={styles.successScore}>+10 очков</Text>
           </LinearGradient>
         </Animated.View>
 
@@ -1214,68 +817,27 @@ const TrainerComponent = (props: any): JSX.Element => {
                   style={styles.wrongAnswerGradient}
                 >
                   <View style={styles.wrongAnswerHeader}>
-                    <Text style={styles.wrongAnswerTitle}>Ответ неверный</Text>
+                    <Text style={styles.wrongAnswerTitle}>Неверно</Text>
                     <TouchableOpacity
-                      style={styles.wrongAnswerClose}
                       onPress={hideWrongAnswerModal}
                       activeOpacity={0.7}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                      <Ionicons name='close' size={28} color='#FFFFFF' />
+                      <Ionicons name='close' size={24} color='#FFFFFF' />
                     </TouchableOpacity>
                   </View>
-
-                  <View style={styles.wrongAnswerContent}>
-                    <Ionicons
-                      name='sad-outline'
-                      size={60}
-                      color='#FFFFFF'
-                      style={styles.wrongAnswerIcon}
-                    />
-                    <Text style={styles.wrongAnswerText}>
-                      Ваш ответ: {selectedWords.join(' ')}
-                    </Text>
-                    <Text style={styles.correctAnswerText}>
-                      Правильный ответ: {sentence.ru}
-                    </Text>
-
-                    <View style={styles.wrongAnswerHint}>
-                      <Ionicons name='bulb-outline' size={24} color='#FFD600' />
-                      <Text style={styles.wrongAnswerHintText}>
-                        Обратите внимание на порядок слов и грамматические формы
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* <View style={styles.wrongAnswerButtons}>
-                    <TouchableOpacity 
-                      style={[styles.wrongAnswerButton, styles.retryButton]}
-                      onPress={clearAnswer}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="refresh" size={22} color="#FFFFFF" />
-                      <Text style={styles.wrongAnswerButtonText}>Попробовать снова</Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity 
-                      style={[styles.wrongAnswerButton, styles.showAnswerButton]}
-                      onPress={() => {
-                        hideWrongAnswerModal();
-                        setIsAnswerVisible(true);
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="eye" size={22} color="#FFFFFF" />
-                      <Text style={styles.wrongAnswerButtonText}>Посмотреть ответ</Text>
-                    </TouchableOpacity>
-                  </View> */}
+                  <Text style={styles.wrongAnswerText}>
+                    Ваш ответ: {selectedWords.join(' ')}
+                  </Text>
+                  <Text style={styles.correctAnswerText}>
+                    Правильно: {sentence.ru}
+                  </Text>
                 </LinearGradient>
               </Animated.View>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Premium Modal для правильного ответа */}
+        {/* Answer Modal */}
         {isAnswerVisible && (
           <View style={styles.modalOverlay}>
             <TouchableOpacity
@@ -1283,67 +845,26 @@ const TrainerComponent = (props: any): JSX.Element => {
               onPress={() => setIsAnswerVisible(false)}
               activeOpacity={1}
             >
-              <Animated.View
-                style={[
-                  styles.modalCard,
-                  { transform: [{ scale: cardScale }] },
-                ]}
-              >
+              <View style={styles.modalCard}>
                 <LinearGradient
                   colors={
                     theme === 'light'
-                      ? [
-                          'rgba(240, 245, 255, 0.95)',
-                          'rgba(230, 240, 255, 0.98)',
-                        ]
-                      : ['rgba(30, 30, 60, 0.95)', 'rgba(20, 20, 40, 0.98)']
+                      ? ['#667eea', '#764ba2']
+                      : [colors.primary, colors.primaryDark || colors.primary]
                   }
                   style={styles.modalGradient}
                 >
-                  <View style={styles.modalHeader}>
-                    <Text style={[styles.modalTitle, { color: colors.text }]}>
-                      CORRECT TRANSLATION
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.modalClose}
-                      onPress={() => setIsAnswerVisible(false)}
-                      activeOpacity={0.7}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    >
-                      <Ionicons
-                        name='close'
-                        size={24}
-                        color={theme === 'light' ? colors.primary : '#8B5CFF'}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.modalContent}>
-                    <Ionicons
-                      name='bulb'
-                      size={48}
-                      color={theme === 'light' ? colors.primary : '#8B5CFF'}
-                    />
-                    <Text style={[styles.modalAnswer, { color: colors.text }]}>
-                      {sentence.ru}
-                    </Text>
-                  </View>
-
+                  <Text style={styles.modalTitle}>Правильный ответ</Text>
+                  <Text style={styles.modalAnswer}>{sentence.ru}</Text>
                   <TouchableOpacity
-                    style={[
-                      styles.modalButton,
-                      {
-                        backgroundColor:
-                          theme === 'light' ? colors.primary : '#8B5CFF',
-                      },
-                    ]}
+                    style={styles.modalButton}
                     onPress={() => setIsAnswerVisible(false)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.modalButtonText}>GOT IT</Text>
+                    <Text style={styles.modalButtonText}>Понятно</Text>
                   </TouchableOpacity>
                 </LinearGradient>
-              </Animated.View>
+              </View>
             </TouchableOpacity>
           </View>
         )}
@@ -1361,9 +882,9 @@ const styles = StyleSheet.create({
   },
   particle: {
     position: 'absolute',
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
   },
   container: {
     flex: 1,
@@ -1372,266 +893,249 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingHorizontal: 16,
+    paddingBottom: 20,
   },
-  header: {
+  
+  // Компактный Header
+  compactHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  compactBackButton: {
+    padding: 8,
+  },
+  compactStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  compactStatItem: {
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  streakActive: {
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  streakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  compactStatValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontVariant: ['tabular-nums'],
+  },
+  compactStatLabel: {
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  
+  // Прогресс бар
+  progressContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 16,
+    marginBottom: 8,
   },
-  backButton: {
-    borderRadius: 20,
+  progressTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  accuracyText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  progressBarBackground: {
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
   },
-  backGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
   },
-  backText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  streakCard: {
-    borderWidth: 1.5,
-  },
-  streakContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statValue: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    fontVariant: ['tabular-nums'],
-  },
-  statLabel: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginTop: 4,
-  },
-  sentenceCard: {
-    borderRadius: 28,
-    marginHorizontal: 24,
-    marginTop: 16,
-    marginBottom: 24,
+  
+  // Основная карточка
+  mainCard: {
+    borderRadius: 24,
+    overflow: 'hidden',
     shadowColor: '#663DFF',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 10,
   },
-  sentenceGradient: {
-    borderRadius: 28,
-    overflow: 'hidden',
+  cardGradient: {
+    flex: 1,
   },
   cardGlow: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 28,
-    borderWidth: 2,
+    borderRadius: 24,
+    borderWidth: 1,
   },
   cardContent: {
     padding: 24,
+    flex: 1,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   tenseBadge: {
     paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
   },
   tenseName: {
     fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  hintButton: {
-    padding: 8,
-  },
-  englishText: {
-    fontSize: 28,
-    fontWeight: '300',
-    textAlign: 'center',
-    lineHeight: 36,
-    marginBottom: 24,
-    fontFamily: 'System',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  accuracyMeter: {
-    flex: 1,
-    marginRight: 16,
-  },
-  accuracyBackground: {
-    height: 6,
-    borderRadius: 3,
-    marginBottom: 6,
-    overflow: 'hidden',
-  },
-  accuracyFill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-  accuracyText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
-  progressCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
+  hintButton: {
+    padding: 6,
   },
-  progressCount: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  buildSection: {
-    marginHorizontal: 24,
+  
+  // Секции внутри карточки
+  sentenceSection: {
     marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 13,
+  sectionLabel: {
+    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 2,
-    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+  originalText: {
+    fontSize: 24,
+    fontWeight: '400',
+    lineHeight: 32,
+  },
+  
+  // Ответ пользователя
+  userAnswerContainer: {
+    minHeight: 60,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    justifyContent: 'center',
+  },
+  emptyAnswer: {
+    fontSize: 16,
+    fontStyle: 'italic',
     textAlign: 'center',
   },
-  selectedArea: {
-    minHeight: 80,
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-  },
-  placeholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  placeholderText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginTop: 8,
-  },
-  selectedWordsRow: {
+  selectedWordsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
+    alignItems: 'center',
   },
   selectedWordChip: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  selectedWordGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
+    borderRadius: 20,
+    gap: 8,
   },
   selectedWordText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
   },
-  actionRow: {
-    flexDirection: 'row',
-    gap: 12,
+  removeIcon: {
+    marginLeft: 4,
   },
-  secondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    borderRadius: 20,
-    flex: 1,
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  secondaryText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  primaryButton: {
-    flex: 2,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  primaryGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 16,
-  },
-  primaryText: {
-    color: '#000',
-    fontSize: 15,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
+  
+  // Доступные слова
   wordsSection: {
-    marginHorizontal: 24,
-    marginBottom: 40,
+    marginBottom: 24,
   },
   wordsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
   },
-  wordPill: {
+  wordChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    maxWidth: '48%', // Ограничиваем ширину для двух колонок
+    minWidth: 80,
+    flexShrink: 1,
+  },
+  wordChipText: {
+    fontSize: 15,
+    fontWeight: '500',
+    flexShrink: 1, // Предотвращаем перенос текста
+    flexWrap: 'nowrap', // Запрещаем перенос на новую строку
+  },
+  wordCheckmark: {
+    marginLeft: 6,
+  },
+  
+  // Кнопки действий
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  clearButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
+    flex: 1,
+    justifyContent: 'center',
   },
-  wordPillText: {
-    fontSize: 15,
+  clearButtonText: {
+    fontSize: 14,
     fontWeight: '600',
   },
-  selectedIndicator: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: 'center',
-    alignItems: 'center',
+  checkButton: {
+    flex: 2,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
+  checkButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+  },
+  checkButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
+  // Success Overlay
   successOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
@@ -1639,42 +1143,28 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   successCard: {
-    width: '70%',
-    padding: 32,
-    borderRadius: 28,
+    padding: 30,
+    borderRadius: 24,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 20 },
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
-    shadowRadius: 30,
-    elevation: 20,
-  },
-  successIcon: {
-    marginBottom: 12,
+    shadowRadius: 20,
+    elevation: 10,
   },
   successTitle: {
     color: '#000',
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 6,
+    marginTop: 12,
   },
   successScore: {
     color: '#000',
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
+    fontSize: 16,
+    marginTop: 4,
   },
-  successStreak: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  successStreakText: {
-    color: '#000',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  // Wrong Answer Modal Styles
+  
+  // Wrong Answer Modal
   wrongAnswerOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
@@ -1688,14 +1178,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wrongAnswerModal: {
-    width: '85%',
-    borderRadius: 28,
+    width: '80%',
+    borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#FF4081',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.4,
-    shadowRadius: 30,
-    elevation: 20,
   },
   wrongAnswerGradient: {
     padding: 24,
@@ -1704,89 +1189,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   wrongAnswerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    flex: 1,
-    textAlign: 'center',
-  },
-  wrongAnswerClose: {
-    padding: 4,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  wrongAnswerContent: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  wrongAnswerIcon: {
-    marginBottom: 20,
   },
   wrongAnswerText: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#FFFFFF',
-    textAlign: 'center',
     marginBottom: 12,
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
     padding: 12,
-    borderRadius: 12,
-    width: '100%',
+    borderRadius: 8,
   },
   correctAnswerText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#FFD600',
-    textAlign: 'center',
-    marginBottom: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     padding: 12,
-    borderRadius: 12,
-    width: '100%',
+    borderRadius: 8,
   },
-  wrongAnswerHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 12,
-    borderRadius: 12,
-    width: '100%',
-    gap: 8,
-  },
-  wrongAnswerHintText: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    flex: 1,
-  },
-  wrongAnswerButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  wrongAnswerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    flex: 1,
-  },
-  retryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  showAnswerButton: {
-    backgroundColor: 'rgba(255, 214, 0, 0.3)',
-  },
-  wrongAnswerButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  // Original modal for correct answer
+  
+  // Answer Modal
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
@@ -1800,53 +1227,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCard: {
-    width: '85%',
-    borderRadius: 24,
+    width: '80%',
+    borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#663DFF',
-    shadowOffset: { width: 0, height: 15 },
-    shadowOpacity: 0.4,
-    shadowRadius: 25,
-    elevation: 20,
   },
   modalGradient: {
     padding: 24,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  modalClose: {
-    padding: 4,
-  },
-  modalContent: {
-    alignItems: 'center',
-    marginBottom: 24,
+    color: '#FFFFFF',
+    marginBottom: 16,
   },
   modalAnswer: {
-    fontSize: 22,
-    fontWeight: '300',
+    fontSize: 20,
+    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 30,
-    marginTop: 16,
+    marginBottom: 20,
+    lineHeight: 28,
   },
   modalButton: {
-    padding: 16,
-    borderRadius: 16,
-    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
   modalButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 1,
+    fontWeight: '600',
   },
 });
 
